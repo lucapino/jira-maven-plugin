@@ -124,9 +124,14 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
         if (log.isInfoEnabled()) {
             log.info("JQL: " + jql);
         }
-        RemoteIssue[] issues = getClient().getService().getIssuesFromJqlSearch(getClient().getToken(), jql, maxIssues);
-        if (log.isInfoEnabled()) {
-            log.info("Issues: " + issues.length);
+        RemoteIssue[] issues = null;
+        try {
+            issues = getClient().getService().getIssuesFromJqlSearch(getClient().getToken(), jql, maxIssues);
+            if (log.isInfoEnabled()) {
+                log.info("Issues: " + issues.length);
+            }
+        } catch (Exception ex) {
+            log.warn("No issues found.");
         }
         return issues;
     }
