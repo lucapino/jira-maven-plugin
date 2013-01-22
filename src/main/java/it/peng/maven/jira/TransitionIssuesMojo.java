@@ -17,6 +17,7 @@
 package it.peng.maven.jira;
 
 import com.atlassian.jira.rpc.soap.beans.RemoteIssue;
+import com.atlassian.jira.rpc.soap.beans.RemoteNamedObject;
 import java.rmi.RemoteException;
 import static java.text.MessageFormat.format;
 import org.apache.maven.plugin.MojoFailureException;
@@ -110,7 +111,13 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
     private void transitionIssues(RemoteIssue[] issues, String transition) throws RemoteException, MojoFailureException,
             com.atlassian.jira.rpc.soap.beans.RemoteException {
         for (RemoteIssue remoteIssue : issues) {
-            getClient().getService().progressWorkflowAction(getClient().getToken(), remoteIssue.getKey(), transition, null);
+            RemoteNamedObject[] actions = getClient().getService().getAvailableActions(getClient().getToken(), remoteIssue.getKey());
+            for (RemoteNamedObject action : actions) {
+                if (action.getName().equals(transition)) {
+                    getClient().getService().progressWorkflowAction(getClient().getToken(), remoteIssue.getKey(), action.getId(), null);
+                    break;
+                }
+            }
         }
     }
 }
