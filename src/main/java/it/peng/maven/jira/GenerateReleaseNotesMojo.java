@@ -200,6 +200,9 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
 
     private HashMap<String, List<JiraIssue>> processIssues(List<JiraIssue> issues) throws MojoFailureException {
         HashMap<String, List<JiraIssue>> jiraIssues = new HashMap<String, List<JiraIssue>>();
+        jiraIssues.put("add", new ArrayList<JiraIssue>());
+        jiraIssues.put("fix", new ArrayList<JiraIssue>());
+        jiraIssues.put("update", new ArrayList<JiraIssue>());
         for (JiraIssue issue : issues) {
             String issueCategory;
             String issueType = issue.getType();
@@ -213,12 +216,7 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
                 // update
                 issueCategory = "update";
             }
-            List<JiraIssue> currentList;
-            if (jiraIssues.containsKey(issueCategory)) {
-                currentList = jiraIssues.get(issueCategory);
-            } else {
-                currentList = new ArrayList<JiraIssue>();
-            }
+            List<JiraIssue> currentList = jiraIssues.get(issueCategory);
             currentList.add(issue);
             jiraIssues.put(issueCategory, currentList);
         }
