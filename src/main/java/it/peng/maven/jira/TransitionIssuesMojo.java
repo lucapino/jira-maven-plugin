@@ -66,7 +66,7 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
      * @required
      */
     String transition;
-    
+
     @Override
     public void doExecute()
             throws Exception {
@@ -85,33 +85,37 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
             }
         }
     }
-    
+
     public void setReleaseVersion(String releaseVersion) {
         this.releaseVersion = releaseVersion;
     }
-    
+
     public void setJqlTemplate(String jqlTemplate) {
         this.jqlTemplate = jqlTemplate;
     }
-    
+
     private void transitionIssues(List<JiraIssue> issues, String transition) throws RemoteException, MojoFailureException,
             com.atlassian.jira.rpc.soap.beans.RemoteException {
         for (JiraIssue issue : issues) {
             RemoteNamedObject[] actions = getClient().getService().getAvailableActions(getClient().getToken(), issue.getKey());
-            boolean found = false;
-            for (RemoteNamedObject action : actions) {
-                if (action.getName().equals(transition)) {
-                    getClient().getService().progressWorkflowAction(getClient().getToken(), issue.getKey(), action.getId(), null);
-                    found=true;
-                    break;
+            if (actions == null) {
+                getLog().warn("No transition '" + transition + "' found for issue " + issue.getKey());
+            } else {
+                boolean found = false;
+                for (RemoteNamedObject action : actions) {
+                    if (action.getName().equals(transition)) {
+                        getClient().getService().progressWorkflowAction(getClient().getToken(), issue.getKey(), action.getId(), null);
+                        found = true;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                getLog().warn("No transition with name '" + transition + "' faound for issue " + issue.getKey());
+                if (!found) {
+                    getLog().warn("No transition with name '" + transition + "' found for issue " + issue.getKey());
+                }
             }
         }
     }
-    
+
     private void configureIssueDownloader(IssuesDownloader issueDownloader) {
         issueDownloader.setLog(getLog());
         issueDownloader.setMavenProject(project);

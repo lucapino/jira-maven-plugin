@@ -102,15 +102,14 @@ public class IssuesDownloader {
             if (log.isInfoEnabled()) {
                 log.info("Issues: " + remoteIssues.length);
             }
+            for (RemoteIssue remoteIssue : remoteIssues) {
+                JiraIssue jiraIssue = new JiraIssue();
+                fillIssue(jiraIssue, remoteIssue);
+                issues.add(jiraIssue);
+            }
         } catch (Exception ex) {
             log.warn("No issues found.");
         }
-        for (RemoteIssue remoteIssue : remoteIssues) {
-            JiraIssue jiraIssue = new JiraIssue();
-            fillIssue(jiraIssue, remoteIssue);
-            issues.add(jiraIssue);
-        }
-
         return issues;
     }
 
