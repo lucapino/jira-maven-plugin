@@ -16,10 +16,11 @@
  */
 package it.peng.maven.jira;
 
-import com.atlassian.jira.rpc.soap.beans.RemoteIssue;
 import com.atlassian.jira.rpc.soap.beans.RemoteNamedObject;
+import it.peng.maven.jira.helpers.IssuesDownloader;
+import it.peng.maven.jira.model.JiraIssue;
 import java.rmi.RemoteException;
-import static java.text.MessageFormat.format;
+import java.util.List;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
@@ -39,7 +40,8 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
      * JQL Template to retrieve Resolved issues. Parameter 0 = Project Key
      * Parameter 1 = Fix version
      *
-     * @parameter parameter="jqlTemplate" default-value="project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''"
+     * @parameter parameter="jqlTemplate" default-value="project = ''{0}'' AND
+     * status in (Resolved) AND fixVersion = ''{1}''"
      * @required
      */
     String jqlTemplate = "project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''";
@@ -64,7 +66,7 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
      * @required
      */
     String transition;
-
+    
     @Override
     public void doExecute()
             throws Exception {
@@ -72,52 +74,56 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
         if (transition == null) {
             log.info("Transition not specified. Nothing to do");
         }
-        RemoteIssue[] issues = getIssues();
-        transitionIssues(issues, transition);
-    }
-
-    /**
-     * Recover issues from JIRA based on JQL Filter
-     *
-     * @param jiraService
-     * @param loginToken
-     * @return
-     * @throws RemoteException
-     * @throws com.atlassian.jira.rpc.soap.client.RemoteException
-     */
-    RemoteIssue[] getIssues()
-            throws RemoteException, MojoFailureException,
-            com.atlassian.jira.rpc.soap.beans.RemoteException {
-        Log log = getLog();
-        String jql = format(jqlTemplate, jiraProjectKey, releaseVersion);
-        if (log.isInfoEnabled()) {
-            log.info("JQL: " + jql);
+        IssuesDownloader issuesDownloader = new IssuesDownloader();
+        configureIssueDownloader(issuesDownloader);
+        List<JiraIssue> issues = issuesDownloader.getIssueList();
+        try {
+            transitionIssues(issues, transition);
+        } finally {
+            if (client != null) {
+                getClient().getService().logout(getClient().getToken());
+            }
         }
-        RemoteIssue[] issues = getClient().getService().getIssuesFromJqlSearch(getClient().getToken(), jql, maxIssues);
-        if (log.isInfoEnabled()) {
-            log.info("Issues: " + issues.length);
-        }
-        return issues;
     }
-
+    
     public void setReleaseVersion(String releaseVersion) {
         this.releaseVersion = releaseVersion;
     }
-
+    
     public void setJqlTemplate(String jqlTemplate) {
         this.jqlTemplate = jqlTemplate;
     }
-
-    private void transitionIssues(RemoteIssue[] issues, String transition) throws RemoteException, MojoFailureException,
+    
+    private void transitionIssues(List<JiraIssue> issues, String transition) throws RemoteException, MojoFailureException,
             com.atlassian.jira.rpc.soap.beans.RemoteException {
-        for (RemoteIssue remoteIssue : issues) {
-            RemoteNamedObject[] actions = getClient().getService().getAvailableActions(getClient().getToken(), remoteIssue.getKey());
+        for (JiraIssue issue : issues) {
+            RemoteNamedObject[] actions = getClient().getService().getAvailableActions(getClient().getToken(), issue.getKey());
+            boolean found = false;
             for (RemoteNamedObject action : actions) {
                 if (action.getName().equals(transition)) {
-                    getClient().getService().progressWorkflowAction(getClient().getToken(), remoteIssue.getKey(), action.getId(), null);
+                    getClient().getService().progressWorkflowAction(getClient().getToken(), issue.getKey(), action.getId(), null);
+                    found=true;
                     break;
                 }
             }
+            if (!found) {
+                getLog().warn("No transition with name '" + transition + "' faound for issue " + issue.getKey());
+            }
         }
+    }
+    
+    private void configureIssueDownloader(IssuesDownloader issueDownloader) {
+        issueDownloader.setLog(getLog());
+        issueDownloader.setMavenProject(project);
+        issueDownloader.setMaxIssues(maxIssues);
+        issueDownloader.setJiraUser(username);
+        issueDownloader.setJiraPassword(password);
+        issueDownloader.setSettings(settings);
+        issueDownloader.setJqlTemplate(jqlTemplate);
+        issueDownloader.setReleaseVersion(releaseVersion);
+        issueDownloader.setServerId(serverId);
+        issueDownloader.setWagonManager(wagonManager);
+        issueDownloader.setJiraProjectKey(jiraProjectKey);
+        issueDownloader.setUrl(url);
     }
 }

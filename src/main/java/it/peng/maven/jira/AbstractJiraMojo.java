@@ -47,7 +47,7 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
      *
      * @parameter parameter="serverId"
      */
-    private String serverId;
+    protected String serverId;
     /**
      * JIRA Installation URL. If not informed, it will use the
      * project.issueManagement.url info.
@@ -85,7 +85,7 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
      */
     protected WagonManager wagonManager;
     private TemplateEvaluator evaluator;
-    private JiraClient client;
+    protected JiraClient client;
     /**
      * The Maven project
      *
@@ -136,13 +136,7 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
             return;
         }
         try {
-            try {
-                doExecute();
-            } finally {
-                log.debug("Disconnecting from JIRA server");
-                getClient().getService().logout(getClient().getToken());
-                log.debug("Disconnected from JIRA server");
-            }
+            doExecute();
         } catch (Exception e) {
             log.error("Error when executing mojo", e);
             // XXX: Por enquanto nao faz nada.

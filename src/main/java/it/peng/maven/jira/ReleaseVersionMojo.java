@@ -41,8 +41,7 @@ public class ReleaseVersionMojo extends AbstractJiraMojo {
     /**
      * Released Version
      *
-     * @parameter parameter="releaseVersion"
-     * default-value="${project.version}"
+     * @parameter parameter="releaseVersion" default-value="${project.version}"
      */
     String releaseVersion;
     /**
@@ -63,14 +62,20 @@ public class ReleaseVersionMojo extends AbstractJiraMojo {
     public void doExecute()
             throws Exception {
         Log log = getLog();
-        RemoteVersion[] versions = getClient().getService().getVersions(getClient().getToken(),
-                jiraProjectKey);
-        String thisReleaseVersion = (autoDiscoverLatestRelease) ? calculateLatestReleaseVersion(versions)
-                : releaseVersion;
-        if (thisReleaseVersion != null) {
-            log.info("Releasing Version " + this.releaseVersion);
-            markVersionAsReleased(versions,
-                    thisReleaseVersion);
+        try {
+            RemoteVersion[] versions = getClient().getService().getVersions(getClient().getToken(),
+                    jiraProjectKey);
+            String thisReleaseVersion = (autoDiscoverLatestRelease) ? calculateLatestReleaseVersion(versions)
+                    : releaseVersion;
+            if (thisReleaseVersion != null) {
+                log.info("Releasing Version " + this.releaseVersion);
+                markVersionAsReleased(versions,
+                        thisReleaseVersion);
+            }
+        } finally {
+            if (client != null) {
+                getClient().getService().logout(getClient().getToken());
+            }
         }
     }
 

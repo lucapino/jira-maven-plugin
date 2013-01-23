@@ -16,8 +16,8 @@
  */
 package it.peng.maven.jira;
 
-import com.atlassian.jira.rpc.soap.beans.RemoteIssue;
 import edu.emory.mathcs.backport.java.util.Collections;
+import it.peng.maven.jira.helpers.IssuesDownloader;
 import it.peng.maven.jira.helpers.JiraIssueComparator;
 import it.peng.maven.jira.model.JiraIssue;
 import java.io.File;
@@ -26,15 +26,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.rmi.RemoteException;
-import static java.text.MessageFormat.format;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Goal that generates release notes based on a version in a JIRA project.
@@ -72,15 +70,22 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
      */
     String releaseVersion;
     /**
+     * Map of custom parameters for the announcement. This Map will be passed to
+     * the template.
+     *
+     * @parameter
+     */
+    private Map announceParameters;
+    /**
      * Template file
      *
-     * @parameter parameter="templateFile"
+     * @parameter parameter="templateFile" property="templateFile"
      */
     File templateFile;
     /**
      * Target file
      *
-     * @parameter parameter="targetFile"
+     * @parameter parameter="targetFile" property="targetFile"
      * default-value="${project.build.directory}/releaseNotes.vm"
      * @required
      */
@@ -99,41 +104,11 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
     String afterText;
 
     @Override
-    public void doExecute()
-            throws Exception {
-        RemoteIssue[] issues = getIssues();
+    public void doExecute() throws Exception {
+        IssuesDownloader issuesDownloader = new IssuesDownloader();
+        configureIssueDownloader(issuesDownloader);
+        List<JiraIssue> issues = issuesDownloader.getIssueList();
         output(issues);
-    }
-
-    /**
-     * Recover issues from JIRA based on JQL Filter
-     *
-     * @param jiraService
-     * @param loginToken
-     * @return
-     * @throws RemoteException
-     * @throws com.atlassian.jira.rpc.soap.client.RemoteException
-     */
-    RemoteIssue[] getIssues()
-            throws RemoteException, MojoFailureException,
-            com.atlassian.jira.rpc.soap.beans.RemoteException {
-        Log log = getLog();
-        // strip out -SNAPSHOT from releaseVersion
-        releaseVersion = StringUtils.capitaliseAllWords(releaseVersion.replace("-SNAPSHOT", "").replace("-", " "));
-        String jql = format(jqlTemplate, jiraProjectKey, releaseVersion);
-        if (log.isInfoEnabled()) {
-            log.info("JQL: " + jql);
-        }
-        RemoteIssue[] issues = null;
-        try {
-            issues = getClient().getService().getIssuesFromJqlSearch(getClient().getToken(), jql, maxIssues);
-            if (log.isInfoEnabled()) {
-                log.info("Issues: " + issues.length);
-            }
-        } catch (Exception ex) {
-            log.warn("No issues found.");
-        }
-        return issues;
     }
 
     /**
@@ -141,7 +116,8 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
      *
      * @param issues
      */
-    void output(RemoteIssue[] issues) throws IOException, MojoFailureException {
+    void output(List<JiraIssue> issues) throws IOException, MojoFailureException {
+
         Log log = getLog();
         if (targetFile == null) {
             log.warn("No targetFile specified. Ignoring");
@@ -152,15 +128,22 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
             return;
         }
         HashMap<Object, Object> parameters = new HashMap<Object, Object>();
-        List<JiraIssue> jiraIssues = new ArrayList<JiraIssue>();
-        for (RemoteIssue remoteIssue : issues) {
-            jiraIssues.add(new JiraIssue(remoteIssue, getClient().getService(), getClient().getToken()));
+        HashMap<String, List<JiraIssue>> jiraIssues = processIssues(issues);
+        List<JiraIssue> jiraIssuesList = new ArrayList<JiraIssue>();
+        for (List<JiraIssue> list : jiraIssues.values()) {
+            jiraIssuesList.addAll(list);
         }
-        Collections.sort(jiraIssues, new JiraIssueComparator());
-        parameters.put("issues", jiraIssues);
+        parameters.put("issues", jiraIssuesList);
+        parameters.put("issuesMap", jiraIssues);
         parameters.put("jiraURL", url);
         parameters.put("jiraProjectKey", jiraProjectKey);
         parameters.put("releaseVersion", releaseVersion);
+        if (announceParameters == null) {
+            // empty Map to prevent NPE in velocity execution
+            parameters.put("announceParameters", java.util.Collections.EMPTY_MAP);
+        } else {
+            parameters.put("announceParameters", announceParameters);
+        }
 
         boolean useDefault = false;
         if (templateFile == null || !templateFile.exists()) {
@@ -213,5 +196,50 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
 
     public void setJqlTemplate(String jqlTemplate) {
         this.jqlTemplate = jqlTemplate;
+    }
+
+    private HashMap<String, List<JiraIssue>> processIssues(List<JiraIssue> issues) throws MojoFailureException {
+        HashMap<String, List<JiraIssue>> jiraIssues = new HashMap<String, List<JiraIssue>>();
+        for (JiraIssue issue : issues) {
+            String issueCategory;
+            String issueType = issue.getType();
+            if (issueType.equalsIgnoreCase("new feature") || issueType.equalsIgnoreCase("task") || issueType.equalsIgnoreCase("internaltask") || issueType.equalsIgnoreCase("sub-task")) {
+                // add
+                issueCategory = "add";
+            } else if (issueType.equalsIgnoreCase("bug") || issueType.equalsIgnoreCase("internalbug")) {
+                // fix
+                issueCategory = "fix";
+            } else {
+                // update
+                issueCategory = "update";
+            }
+            List<JiraIssue> currentList;
+            if (jiraIssues.containsKey(issueCategory)) {
+                currentList = jiraIssues.get(issueCategory);
+            } else {
+                currentList = new ArrayList<JiraIssue>();
+            }
+            currentList.add(issue);
+            jiraIssues.put(issueCategory, currentList);
+        }
+        for (List<JiraIssue> list : jiraIssues.values()) {
+            Collections.sort(list, new JiraIssueComparator());
+        }
+        return jiraIssues;
+    }
+
+    private void configureIssueDownloader(IssuesDownloader issueDownloader) {
+        issueDownloader.setLog(getLog());
+        issueDownloader.setMavenProject(project);
+        issueDownloader.setMaxIssues(maxIssues);
+        issueDownloader.setJiraUser(username);
+        issueDownloader.setJiraPassword(password);
+        issueDownloader.setSettings(settings);
+        issueDownloader.setJqlTemplate(jqlTemplate);
+        issueDownloader.setReleaseVersion(releaseVersion);
+        issueDownloader.setServerId(serverId);
+        issueDownloader.setWagonManager(wagonManager);
+        issueDownloader.setJiraProjectKey(jiraProjectKey);
+        issueDownloader.setUrl(url);
     }
 }

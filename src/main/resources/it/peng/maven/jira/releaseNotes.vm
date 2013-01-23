@@ -21,9 +21,10 @@ In this release we fix the following issues
 ||Issue||Type||Reporter||Summary||
 #foreach($issue in $issues)
     #set($key=$issue.getKey())
+    #set($link=$issue.getLink())
     #set($type=$issue.getType())
     #set($reporter=$issue.getReporter())
     #set($summary=$issue.getSummary())
     #set($escapedSummary=$summary.replace("[", "\[").replace("]", "\]"))
-    | [$key|$jiraURL/browse/$key] | $type | $reporter | $escapedSummary |
+    | [$key|$link] | $type | $reporter | $escapedSummary |
 #end

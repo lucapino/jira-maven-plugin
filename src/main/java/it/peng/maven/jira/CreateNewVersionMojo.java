@@ -62,35 +62,41 @@ public class CreateNewVersionMojo extends AbstractJiraMojo {
     @Override
     public void doExecute() throws Exception {
         Log log = getLog();
-        RemoteVersion[] versions = getClient().getService()
-                .getVersions(getClient().getToken(),
-                jiraProjectKey);
-        String newDevVersion;
+        try {
+            RemoteVersion[] versions = getClient().getService()
+                    .getVersions(getClient().getToken(),
+                    jiraProjectKey);
+            String newDevVersion;
 
-        if (finalNameUsedForVersion) {
-            newDevVersion = finalName;
-        } else {
-            newDevVersion = developmentVersion;
-        }
+            if (finalNameUsedForVersion) {
+                newDevVersion = finalName;
+            } else {
+                newDevVersion = developmentVersion;
+            }
 
-        // Removing -SNAPSHOT suffix for safety and sensible formatting
-        newDevVersion = StringUtils.capitaliseAllWords(newDevVersion.replace(
-                "-SNAPSHOT", "").replace("-", " "));
+            // Removing -SNAPSHOT suffix for safety and sensible formatting
+            newDevVersion = StringUtils.capitaliseAllWords(newDevVersion.replace(
+                    "-SNAPSHOT", "").replace("-", " "));
 
-        boolean versionExists = isVersionAlreadyPresent(versions, newDevVersion);
+            boolean versionExists = isVersionAlreadyPresent(versions, newDevVersion);
 
-        if (!versionExists) {
-            RemoteVersion newVersion = new RemoteVersion();
-            log.debug("New Development version in JIRA is: " + newDevVersion);
-            newVersion.setName(newDevVersion);
-            getClient().getService()
-                    .addVersion(getClient().getToken(), jiraProjectKey, newVersion);
-            log.info("Version created in JIRA for project key "
-                    + jiraProjectKey + " : " + newDevVersion);
-        } else {
-            log.warn(String.format(
-                    "Version %s is already created in JIRA. Nothing to do.",
-                    newDevVersion));
+            if (!versionExists) {
+                RemoteVersion newVersion = new RemoteVersion();
+                log.debug("New Development version in JIRA is: " + newDevVersion);
+                newVersion.setName(newDevVersion);
+                getClient().getService()
+                        .addVersion(getClient().getToken(), jiraProjectKey, newVersion);
+                log.info("Version created in JIRA for project key "
+                        + jiraProjectKey + " : " + newDevVersion);
+            } else {
+                log.warn(String.format(
+                        "Version %s is already created in JIRA. Nothing to do.",
+                        newDevVersion));
+            }
+        } finally {
+            if (client != null) {
+                getClient().getService().logout(getClient().getToken());
+            }
         }
     }
 

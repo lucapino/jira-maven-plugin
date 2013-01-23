@@ -15,11 +15,9 @@
  */
 package it.peng.maven.jira.model;
 
-import com.atlassian.jira.rpc.soap.beans.JiraSoapService;
-import com.atlassian.jira.rpc.soap.beans.RemoteIssue;
-import com.atlassian.jira.rpc.soap.beans.RemoteIssueType;
-import com.atlassian.jira.rpc.soap.beans.RemoteProject;
-import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -27,48 +25,151 @@ import java.rmi.RemoteException;
  */
 public class JiraIssue {
 
-    private RemoteIssue remoteIssue;
-    private JiraSoapService jiraService;
-    private String loginToken;
+    private String assignee;
+    private List<String> comments;
+    private List<String> components;
+    private Date created;
+    private List<String> fixVersions;
+    private String id;
+    private String key;
+    private String link;
+    private String priority;
+    private String reporter;
+    private String resolution;
+    private String status;
+    private String summary;
+    private String type;
+    private Date updated;
 
-    public JiraIssue(RemoteIssue remoteIssue, JiraSoapService jiraService, String loginToken) {
-        this.jiraService = jiraService;
-        this.loginToken = loginToken;
-        this.remoteIssue = remoteIssue;
+    public JiraIssue() {
+    }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
+    }
+
+    public List<String> getComments() {
+        return comments;
+    }
+
+    public void addComment(String comment) {
+        if (comments == null) {
+            comments = new ArrayList<String>();
+        }
+        comments.add(comment);
+    }
+
+    public List<String> getComponents() {
+        return components;
+    }
+
+    public void addComponent(String component) {
+        if (components == null) {
+            components = new ArrayList<String>();
+        }
+        components.add(component);
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public List<String> getFixVersions() {
+        return fixVersions;
+    }
+
+    public void addFixVersion(String fixVersion) {
+        if (fixVersions == null) {
+            fixVersions = new ArrayList<String>();
+        }
+        fixVersions.add(fixVersion);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 
     public String getReporter() {
-        String result;
-        try {
-            result = jiraService.getUser(loginToken, remoteIssue.getReporter()).getFullname();
-        } catch (RemoteException ex) {
-            result = "";
-        }
-        return result;
+        return reporter;
     }
-    
-    public String getKey() {
-        return remoteIssue.getKey();
+
+    public void setReporter(String reporter) {
+        this.reporter = reporter;
     }
-    
+
+    public String getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(String resolution) {
+        this.resolution = resolution;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getSummary() {
-        return remoteIssue.getSummary();
+        return summary;
     }
-    
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
     public String getType() {
-        String result = "";
-        try {
-            RemoteProject project = jiraService.getProjectByKey(loginToken, remoteIssue.getProject());
-            RemoteIssueType[] issueTypes =  jiraService.getIssueTypesForProject(loginToken, project.getId());
-            for (RemoteIssueType remoteIssueType : issueTypes) {
-                if (remoteIssueType.getId().equals(remoteIssue.getType())) {
-                    result = remoteIssueType.getName();
-                    break;
-                }
-            }
-        } catch (RemoteException ex) {
-            result = "";
-        }
-        return result;
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Date getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(Date updated) {
+        this.updated = updated;
     }
 }
