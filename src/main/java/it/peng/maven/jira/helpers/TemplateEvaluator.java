@@ -17,9 +17,11 @@
 package it.peng.maven.jira.helpers;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import org.apache.maven.project.MavenProject;
@@ -40,8 +42,9 @@ public class TemplateEvaluator {
         }
     }
 
-    public String evaluate(File file, HashMap<Object, Object> properties) throws FileNotFoundException {
-        FileReader reader = new FileReader(file);
+    public String evaluate(File file, HashMap<Object, Object> properties) throws FileNotFoundException, UnsupportedEncodingException {
+        FileInputStream fis = new FileInputStream(file); 
+        InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
         StringWriter writer = new StringWriter();
         if (properties != null) {
             for (Entry<Object, Object> p : properties.entrySet()) {
