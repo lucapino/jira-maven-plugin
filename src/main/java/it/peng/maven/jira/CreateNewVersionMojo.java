@@ -19,8 +19,8 @@ package it.peng.maven.jira;
 import com.atlassian.jira.rpc.soap.beans.RemoteVersion;
 import it.peng.maven.jira.helpers.RemoteVersionComparator;
 import java.util.Comparator;
+import org.apache.commons.lang.WordUtils;
 import org.apache.maven.plugin.logging.Log;
-import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Goal that creates a version in a JIRA project . NOTE: SOAP access must be
@@ -75,7 +75,7 @@ public class CreateNewVersionMojo extends AbstractJiraMojo {
             }
 
             // Removing -SNAPSHOT suffix for safety and sensible formatting
-            newDevVersion = StringUtils.capitaliseAllWords(newDevVersion.replace(
+            newDevVersion = WordUtils.capitalize(newDevVersion.replace(
                     "-SNAPSHOT", "").replace("-", " "));
 
             boolean versionExists = isVersionAlreadyPresent(versions, newDevVersion);
