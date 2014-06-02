@@ -28,7 +28,7 @@ limitations under the License.
 
     <groupId>com.github.lucapino</groupId>
     <artifactId>jira-maven-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Maven Jira Plugin</name>
@@ -37,8 +37,8 @@ limitations under the License.
     <inceptionYear>2013</inceptionYear>
     
     <scm>
-        <connection>scm:git:git@github.com/lucapino/jira-maven-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com/lucapino/jira-maven-plugin.git</developerConnection>
+        <connection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</developerConnection>
         <url>https://github.com/lucapino/jira-maven-plugin</url>
     </scm>
 
