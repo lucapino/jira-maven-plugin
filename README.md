@@ -10,7 +10,7 @@ Example plugin definition:
     <plugin>
         <groupId>it.peng.maven.plugin</groupId>
         <artifactId>jira-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <configuration>
             <serverId>jira-server</serverId>
             <url>https://jira.example.org/jira/ </url>
