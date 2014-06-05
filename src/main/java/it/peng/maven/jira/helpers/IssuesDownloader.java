@@ -216,6 +216,16 @@ public class IssuesDownloader {
                     break;
                 }
             }
+            // if issue type is not filled try with subtask
+            if (issue.getType() == null) {
+                issueTypes = jiraService.getSubTaskIssueTypesForProject(loginToken, remoteProject.getId());
+                for (RemoteIssueType remoteIssueType : issueTypes) {
+                    if (remoteIssueType.getId().equals(remoteIssue.getType())) {
+                        issue.setType(remoteIssueType.getName());
+                        break;
+                    }
+                }
+            }
             issue.setKey(remoteIssue.getKey());
             issue.setLink(String.format("%s/browse/%s", url, remoteIssue.getKey()));
             issue.setAssignee(jiraService.getUser(loginToken, remoteIssue.getAssignee()).getFullname());
