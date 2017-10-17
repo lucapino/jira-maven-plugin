@@ -27,7 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.reporting.MavenReportException;
 
 /**
- * Creates a report of a jira version
+ * Creates a report of a JIRA version.
  *
  * @author tagliani
  */

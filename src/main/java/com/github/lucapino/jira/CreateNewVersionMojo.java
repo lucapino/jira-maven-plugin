@@ -29,8 +29,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Goal that creates a version in a JIRA project . NOTE: SOAP access must be
- * enabled in your JIRA installation. Check JIRA docs for more info.
+ * Goal that creates a version in a JIRA project.
  *
  * @author George Gastaldi
  * @author Luca Tagliani

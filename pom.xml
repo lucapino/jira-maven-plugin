@@ -29,15 +29,30 @@ limitations under the License.
     <description>Maven plugin for accessing Atlassian Jira</description>
     <inceptionYear>2013</inceptionYear>
     
+    <prerequisites>
+        <maven>3.5</maven>
+    </prerequisites>
+    
     <scm>
         <connection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</developerConnection>
         <url>https://github.com/lucapino/jira-maven-plugin</url>
     </scm>
+    
+    <ciManagement>
+        <system>Travis</system>
+        <url>https://travis-ci.org/lucapino/jira-maven-plugin</url>
+    </ciManagement>
+    
+    <issueManagement>
+        <system>Github Issues</system>
+        <url>https://github.com/lucapino/jira-maven-plugin/issues/</url>
+    </issueManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <site.skin.version>1.0.0</site.skin.version>
     </properties>
 
     <licenses>
@@ -169,6 +184,27 @@ limitations under the License.
                     <artifactId>maven-install-plugin</artifactId>
                     <version>2.5.2</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.6</version>
+                    <dependencies>
+                        <dependency>
+                            <!-- Docs Maven Skin -->
+                            <groupId>com.wandrell.maven.skins</groupId>
+                            <artifactId>docs-maven-skin</artifactId>
+                            <version>${site.skin.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>2.9</version>
+                    <configuration>
+                        <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         <resources>
@@ -187,6 +223,12 @@ limitations under the License.
         </resources>
 
         <plugins>
+            <plugin>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <goalPrefix>jira</goalPrefix>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>

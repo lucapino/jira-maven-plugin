@@ -211,7 +211,7 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
             mailMsg.setHeader("Content-Transfer-Encoding", "quoted-printable");
             mailMsg.setFrom(fromAddress, fromName);
 
-            if (ccAddresses != null) {
+            if (toAddresses != null) {
                 final Iterator it = toAddresses.iterator();
                 while (it.hasNext()) {
                     email = it.next().toString();
