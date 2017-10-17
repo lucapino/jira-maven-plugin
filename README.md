@@ -1,3 +1,7 @@
+<h1>Maven Jira Plugin</h1><br>
+
+Maven plugin for accessing Atlassian Jira
+
 [![][Build Status img]][Build Status]
 [![][Coverage Status img]][Coverage Status]
 [![][Dependency Status img]][Dependency Status]
@@ -17,7 +21,7 @@ Example plugin definition:
     <plugin>
         <groupId>it.peng.maven.plugin</groupId>
         <artifactId>jira-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>2.0.0</version>
         <configuration>
             <serverId>jira-server</serverId>
             <url>https://jira.example.org/jira/ </url>
