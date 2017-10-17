@@ -77,18 +77,21 @@ limitations under the License.
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.github.github</groupId>
-                        <artifactId>site-maven-plugin</artifactId>
-                        <version>0.12</version>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-scm-publish-plugin</artifactId>
+                        <version>1.1</version>
                         <configuration>
-                            <message>Creating site for ${project.version}</message>
+                            <pubScmUrl>${project.scm.connection}</pubScmUrl>
+                            <scmBranch>gh-pages</scmBranch>
+                            <content>${project.reporting.outputDirectory}</content><!-- mono-module doesn't require site:stage -->
                         </configuration>
                         <executions>
                             <execution>
+                                <id>scm-publish</id>
+                                <phase>site-deploy</phase><!-- deploy site with maven-scm-publish-plugin -->
                                 <goals>
-                                    <goal>site</goal>
+                                    <goal>publish-scm</goal>
                                 </goals>
-                                <phase>site</phase>
                             </execution>
                         </executions>
                     </plugin>

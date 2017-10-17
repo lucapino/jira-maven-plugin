@@ -9,7 +9,7 @@ Maven plugin for accessing Atlassian Jira
 [![][Maven Central img]][Maven Central]
 [![][Javadocs img]][Javadocs]
 
-Plugin documentation can be found at https://lucapino.github.io
+Plugin documentation can be found at https://lucapino.github.io/jira-maven-plugin
 
 Available goals:
 ================
