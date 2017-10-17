@@ -31,13 +31,12 @@
     <body>
         <menu name="General Info" inherit="top">
             <item name="Acquire" href="./acquire.html" />
-            <item name="Usage" href="./usage.html" />
+            <item name="Usage" href="./plugin-info.html" />
             <item name="Changes Log" href="./changes-report.html" />
         </menu>
         <menu name="Documentation" inherit="bottom">
             <item name="Acquire" href="./acquire.html" />
-            <item name="Usage" href="./usage.html" />
-            <item name="Tests" href="./tests.html" />
+            <item name="Usage" href="./plugin-info.html" />
         </menu>
         <menu name="Info and reports" inherit="bottom">
             <item name="Info" href="./info.html" />
@@ -56,7 +55,7 @@
             </item>
         </menu>
         <menu name="Releases" inherit="bottom">
-            <item name="Maven Central" href="http://mvnrepository.com/artifact/com.github.lucapino/jira-maven-plugin" />
+            <item name="Maven Central" href="${mavenURL}" />
         </menu>
         <menu name="Icons" inherit="bottom">
             <item name="Github" img="github" href="${project.scm.url}" />
