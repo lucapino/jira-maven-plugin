@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,36 +26,35 @@ import java.util.List;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.joda.time.DateTime;
 
 /**
  * Goal that creates a version in a JIRA project . NOTE: SOAP access must be
  * enabled in your JIRA installation. Check JIRA docs for more info.
  *
- * @goal release-jira-version
- * @phase deploy
- *
  * @author George Gastaldi
+ * @author Luca Tagliani
  */
+@Mojo(name = "release-jira-version")
+@Execute(goal = "release-jira-version", phase = LifecyclePhase.DEPLOY)
 public class ReleaseVersionMojo extends AbstractJiraMojo {
 
     /**
      * Released Version
-     *
-     * @parameter parameter="releaseVersion" default-value="${project.version}"
      */
+    @Parameter(defaultValue = "${project.version}")
     String releaseVersion;
     /**
      * Auto Discover latest release and release it.
-     *
-     * @parameter parameter="autoDiscoverLatestRelease" default-value="true"
      */
+    @Parameter(defaultValue = "true")
     boolean autoDiscoverLatestRelease;
     /**
      * Comparator for discovering the latest release
-     *
-     * @parameter
-     * implementation="it.peng.maven.jira.helpers.RemoteVersionComparator"
      */
     Comparator<Version> remoteVersionComparator = new RemoteVersionComparator();
 

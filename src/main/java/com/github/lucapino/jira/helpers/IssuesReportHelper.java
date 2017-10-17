@@ -1,23 +1,20 @@
+/*
+ * Copyright 2013-2017 Luca Tagliani.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.lucapino.jira.helpers;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -102,7 +99,7 @@ public class IssuesReportHelper {
             } else if (deprecatedColumns != null && deprecatedColumns.containsKey(columnName)) {
                 Integer columnId = deprecatedColumns.get(columnName);
                 columnIds.add(columnId);
-                if (log != null) {
+                if (log != null && bidiColumns != null) {
                     log.warn("The columnName '" + columnName + "' has been deprecated." + " Please use "
                             + "the columnName '" + bidiColumns.getKey(columnId) + "' instead.");
                 }
@@ -141,7 +138,7 @@ public class IssuesReportHelper {
     public static int[] toIntArray(List<Integer> list) {
         int[] intArray = new int[list.size()];
         for (int j = 0; j < intArray.length; j++) {
-            intArray[j] = (list.get(j)).intValue();
+            intArray[j] = (list.get(j));
         }
         return intArray;
     }

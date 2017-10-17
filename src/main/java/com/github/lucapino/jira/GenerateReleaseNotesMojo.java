@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

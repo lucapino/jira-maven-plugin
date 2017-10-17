@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 tagliani.
+ * Copyright 2013-2017 Luca Tagliani.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.reporting.MavenReportException;
 
 /**
  * Creates a report of a jira version
  *
- * @goal jira-report
  * @author tagliani
  */
+@Mojo(name = "jira-report")
 public class CreateReportMojo extends AbstractJiraMavenReport {
 
     /**
@@ -41,7 +42,7 @@ public class CreateReportMojo extends AbstractJiraMavenReport {
     public boolean canGenerateReport() {
         return !skip;
     }
-    
+
     @Override
     public void executeReport(Locale locale) throws MavenReportException {
         // Validate parameters
@@ -50,7 +51,7 @@ public class CreateReportMojo extends AbstractJiraMavenReport {
             // This can happen if the user has configured column names and they are all invalid
             throw new MavenReportException("jira-maven-plugin: None of the configured columnNames '" + columnNames + "' are valid.");
         }
-        
+
         try {
             // Download issues
             IssuesDownloader issueDownloader = new IssuesDownloader();
@@ -59,7 +60,7 @@ public class CreateReportMojo extends AbstractJiraMavenReport {
 
             // Generate the report
             IssuesReportGenerator report = new IssuesReportGenerator(IssuesReportHelper.toIntArray(columnIds));
-            
+
             if (issueList.isEmpty()) {
                 report.doGenerateEmptyReport(getBundle(locale), getSink());
             } else {
@@ -69,17 +70,17 @@ public class CreateReportMojo extends AbstractJiraMavenReport {
             getLog().warn(e);
         }
     }
-    
+
     @Override
     public String getOutputName() {
         return "jira-report";
     }
-    
+
     @Override
     public String getName(Locale locale) {
         return getBundle(locale).getString("report.issues.name");
     }
-    
+
     @Override
     public String getDescription(Locale locale) {
         return getBundle(locale).getString("report.issues.description");
@@ -91,7 +92,7 @@ public class CreateReportMojo extends AbstractJiraMavenReport {
     private ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle("jira-report", locale, this.getClass().getClassLoader());
     }
-    
+
     private void configureIssueDownloader(IssuesDownloader issueDownloader) {
         issueDownloader.setLog(getLog());
         issueDownloader.setMaxIssues(maxIssues);

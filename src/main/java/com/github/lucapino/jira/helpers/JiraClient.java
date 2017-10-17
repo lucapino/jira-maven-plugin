@@ -1,7 +1,7 @@
 /*
  * Copyright 2011 Tomasz Maciejewski
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  */
 package com.github.lucapino.jira.helpers;
 
-import com.atlassian.httpclient.api.HttpClient;
 import com.atlassian.jira.rest.client.api.AuthenticationHandler;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClientFactory;

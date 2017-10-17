@@ -1,5 +1,19 @@
 /*
- * Copyright (C) 2006-2017 Hitachi Systems CBT S.p.A. All rights reserved.
+ * Copyright 2011 Tomasz Maciejewski
+ * Copyright 2012 George Gastaldi
+ * Copyright 2013-2017 Luca Tagliani
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.github.lucapino.jira;
 
@@ -8,6 +22,7 @@ import com.github.lucapino.jira.helpers.JiraClient;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.reporting.AbstractMavenReport;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
@@ -23,24 +38,77 @@ public abstract class AbstractJiraMavenReport extends AbstractMavenReport {
      * goal is run from the command line or from the default build lifecycle. If
      * the goal is run indirectly as part of a site generation, the output
      * encoding configured in the Maven Site Plugin is used instead.
-     *
-     * @property parameter="outputEncoding"
-     * default-value="${project.reporting.outputEncoding}"
      */
+    @Parameter(defaultValue = "${project.reporting.outputEncoding}", property = "outputEncoding")
     protected String outputEncoding;
     /**
      * Skip plugin execution
-     *
-     * @parameter default-value="false"
      */
+    @Parameter(defaultValue = "false")
     public boolean skip;
     /**
      * Max number of issues to return
-     *
-     * @parameter parameter="maxIssues" default-value="100"
-     * @required
      */
+    @Parameter(defaultValue = "100", required = true)
     int maxIssues = 100;
+    /**
+     * Server's id in settings.xml to look up username and password.
+     */
+    @Parameter
+    protected String serverId;
+    /**
+     * JIRA Installation URL. If not informed, it will use the
+     * project.issueManagement.url info.
+     */
+    @Parameter(name = "jira.url", defaultValue = "${project.issueManagement.url}", required = true)
+    protected String url;
+    /**
+     * JIRA Authentication User.
+     */
+    @Parameter(defaultValue = "${scmUsername}")
+    protected String username;
+    /**
+     * JIRA Authentication Password.
+     */
+    @Parameter(defaultValue = "${scmPassword}")
+    protected String password;
+    /**
+     * JIRA Project Key.
+     */
+    @Parameter(required = true)
+    protected String jiraProjectKey;
+    /**
+     * JQL Template to generate release notes. Parameter 0 = Project Key
+     * Parameter 1 = Fix version
+     */
+    @Parameter(defaultValue = "project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''", required = true)
+    protected String jqlTemplate = "project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''";
+    /**
+     * Sets the names of the columns that you want in the report. The columns
+     * will appear in the report in the same order as you specify them here.
+     * Multiple values can be separated by commas.
+     * <p>
+     * Valid columns are: <code>Assignee</code>, <code>Component</code>,
+     * <code>Created</code>, <code>Fix Version</code>, <code>Id</code>,
+     * <code>Key</code>, <code>Priority</code>, <code>Reporter</code>,
+     * <code>Resolution</code>, <code>Status</code>, <code>Summary</code>,
+     * <code>Type</code>, <code>Updated</code> and <code>Version</code>.
+     * </p>
+     */
+    @Parameter(defaultValue = "Key,Summary,Status,Resolution,Assignee")
+    protected String columnNames;
+
+    /**
+     * Maven settings
+     */
+    @Parameter(defaultValue = "${settings}", readonly = true, required = true)
+    protected Settings settings;
+    /**
+     * Released Version
+     */
+    @Parameter(defaultValue = "${project.version}", required = true)
+    public String releaseVersion;
+
     /**
      * Valid JIRA columns.
      */
@@ -61,75 +129,6 @@ public abstract class AbstractJiraMavenReport extends AbstractMavenReport {
         JIRA_COLUMNS.put("Type", Integer.valueOf(IssuesReportHelper.COLUMN_TYPE));
         JIRA_COLUMNS.put("Updated", Integer.valueOf(IssuesReportHelper.COLUMN_UPDATED));
     }
-    /**
-     * Server's id in settings.xml to look up username and password.
-     *
-     * @parameter parameter="serverId"
-     */
-    protected String serverId;
-    /**
-     * JIRA Installation URL. If not informed, it will use the
-     * project.issueManagement.url info.
-     *
-     * @parameter parameter="jira.url"
-     * default-value="${project.issueManagement.url}"
-     * @required
-     */
-    protected String url;
-    /**
-     * JIRA Authentication User.
-     *
-     * @parameter parameter="username" default-value="${scmUsername}"
-     */
-    protected String username;
-    /**
-     * JIRA Authentication Password.
-     *
-     * @parameter parameter="password" default-value="${scmPassword}"
-     */
-    protected String password;
-    /**
-     * JIRA Project Key.
-     *
-     * @parameter parameter="jiraProjectKey"
-     */
-    protected String jiraProjectKey;
-    /**
-     * JQL Template to generate release notes. Parameter 0 = Project Key
-     * Parameter 1 = Fix version
-     *
-     * @parameter parameter="jqlTemplate" default-value="project = ''{0}'' AND
-     * status in (Resolved, Closed) AND fixVersion = ''{1}''"
-     * @required
-     */
-    protected String jqlTemplate = "project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''";
-    /**
-     * Sets the names of the columns that you want in the report. The columns
-     * will appear in the report in the same order as you specify them here.
-     * Multiple values can be separated by commas.
-     * <p>
-     * Valid columns are: <code>Assignee</code>, <code>Component</code>,
-     * <code>Created</code>, <code>Fix Version</code>, <code>Id</code>,
-     * <code>Key</code>, <code>Priority</code>, <code>Reporter</code>,
-     * <code>Resolution</code>, <code>Status</code>, <code>Summary</code>,
-     * <code>Type</code>, <code>Updated</code> and <code>Version</code>.
-     * </p>
-     *
-     * @parameter default-value="Key,Summary,Status,Resolution,Assignee"
-     */
-    protected String columnNames;
-
-    /**
-     * @parameter parameter="settings"
-     */
-    protected Settings settings;
-    /**
-     * Released Version
-     *
-     * @parameter parameter="releaseVersion" default-value="${project.version}"
-     * @required
-     */
-    public String releaseVersion;
 
     protected JiraClient client;
 

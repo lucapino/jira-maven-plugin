@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,42 +23,39 @@ import com.github.lucapino.jira.helpers.RemoteVersionComparator;
 import java.util.Comparator;
 import org.apache.commons.lang.WordUtils;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.settings.Server;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Goal that creates a version in a JIRA project . NOTE: SOAP access must be
  * enabled in your JIRA installation. Check JIRA docs for more info.
  *
- * @goal create-new-jira-version
- * @phase deploy
- *
  * @author George Gastaldi
+ * @author Luca Tagliani
  */
+@Mojo(name = "create-new-jira-version")
+@Execute(goal = "create-new-jira-version", phase = LifecyclePhase.DEPLOY)
 public class CreateNewVersionMojo extends AbstractJiraMojo {
 
     /**
      * Next Development Version
-     *
-     * @parameter parameter="developmentVersion"
-     * default-value="${project.version}"
-     * @required
      */
+    @Parameter(defaultValue = "${project.version}", required = true)
     String developmentVersion;
     /**
-     * @parameter default-value="${project.build.finalName}"
+     * Final name
      */
+    @Parameter(defaultValue = "${project.build.finalName}")
     String finalName;
     /**
      * Whether the final name is to be used for the version; defaults to false.
-     *
-     * @parameter parameter="finalNameUsedForVersion"
      */
+    @Parameter(defaultValue = "false")
     boolean finalNameUsedForVersion;
     /**
      * Comparator for discovering the latest release
-     *
-     * @parameter
-     * implementation="it.peng.maven.jira.helpers.RemoteVersionComparator"
      */
     Comparator<Version> remoteVersionComparator = new RemoteVersionComparator();
 

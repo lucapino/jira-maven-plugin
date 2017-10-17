@@ -1,6 +1,6 @@
 /*
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 /**
  * Goal that made a transition on the given issues.
@@ -38,32 +39,23 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
     /**
      * JQL Template to retrieve Resolved issues. Parameter 0 = Project Key
      * Parameter 1 = Fix version
-     *
-     * @parameter parameter="jqlTemplate" default-value="project = ''{0}'' AND
-     * status in (Resolved) AND fixVersion = ''{1}''"
-     * @required
      */
+    @Parameter(defaultValue = "project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''", required = true)
     String jqlTemplate = "project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''";
     /**
      * Max number of issues to return
-     *
-     * @parameter parameter="maxIssues" default-value="100"
-     * @required
      */
+    @Parameter(defaultValue = "100")
     int maxIssues = 100;
     /**
      * Released Version
-     *
-     * @parameter parameter="releaseVersion" default-value="${project.version}"
-     * @required
      */
+    @Parameter(defaultValue = "${project.version}", required = true)
     String releaseVersion;
     /**
      * Transition to take
-     *
-     * @parameter parameter="transition"
-     * @required
      */
+    @Parameter(required = true)
     String transition;
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * Copyright 2011 Tomasz Maciejewski
  * Copyright 2012 George Gastaldi
- * Copyright 2013 Luca Tagliani
+ * Copyright 2013-2017 Luca Tagliani
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,30 +41,28 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
     /**
      * Server's id in settings.xml to look up jiraUser and jiraPassword.
      */
-    @Parameter(name = "serverId")
+    @Parameter
     protected String serverId;
     /**
      * JIRA Installation URL. If not informed, it will use the
      * project.issueManagement.jiraURL info.
-     *
-     * @required
      */
     @Parameter(name = "jira.url", defaultValue = "${project.issueManagement.url}", required = true)
     protected String jiraURL;
     /**
      * JIRA Authentication User.
      */
-    @Parameter(name = "jiraUser", defaultValue = "${scmUsername}")
+    @Parameter(defaultValue = "${scmUsername}")
     protected String jiraUser;
     /**
      * JIRA Authentication Password.
      */
-    @Parameter(name = "jiraPassword", defaultValue = "${scmPassword}")
+    @Parameter(defaultValue = "${scmPassword}")
     protected String jiraPassword;
     /**
      * JIRA Project Key.
      */
-    @Parameter(name = "jiraProjectKey")
+    @Parameter
     protected String jiraProjectKey;
 
     /**
@@ -75,7 +73,7 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
     /**
      * Returns if this plugin is enabled for this context
      */
-    @Parameter(name = "skip")
+    @Parameter
     protected boolean skip;
 
     private TemplateEvaluator evaluator;

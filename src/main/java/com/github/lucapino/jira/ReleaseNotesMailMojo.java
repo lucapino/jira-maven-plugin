@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 tagliani.
+ * Copyright 2013-2107 Luca Tagliani.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.apache.maven.model.Developer;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.mailsender.MailMessage;
@@ -35,23 +38,16 @@ import org.codehaus.plexus.util.IOUtil;
 /**
  * Goal that generates release notes based on a version in a JIRA project.
  *
- * NOTE: SOAP access must be enabled in your JIRA installation. Check JIRA docs
- * for more info.
- *
- * @goal mail-release-notes
- * @execute goal="generate-release-notes"
- *
  * @author Luca Tagliani
  */
+@Mojo(name = "mail-release-notes")
+@Execute(goal = "generate-release-notes")
 public class ReleaseNotesMailMojo extends AbstractJiraMojo {
 
     /**
      * Possible senders.
-     *
-     * @parameter property="project.developers"
-     * @required
-     * @readonly
      */
+    @Parameter(property = "project.developers", required = true, readonly = true)
     private List from;
     /**
      * The id of the developer sending the announcement mail. Only used if the
@@ -59,16 +55,13 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
      * attribute is not set. In this case, this should match the id of one of
      * the developers in the pom. If a matching developer is not found, then the
      * first developer in the pom will be used.
-     *
-     * @parameter
      */
+    @Parameter
     private String fromDeveloperId;
     /**
      * Mail content type to use.
-     *
-     * @parameter default-value ="text/plain"
-     * @required
      */
+    @Parameter(defaultValue = "text/plain", required = true)
     private String mailContentType;
     /**
      * Defines the sender of the announcement email. This takes precedence over
@@ -77,8 +70,8 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
      * cannot specify it from command level with
      * <pre>-D</pre>. Use
      * <pre>-Dchanges.sender='Your Name &lt;you@domain>'</pre> instead.
-     * @parameter
      */
+    @Parameter
     private MailSender mailSender;
     /**
      * Defines the sender of the announcement. This takes precedence over both
@@ -86,63 +79,48 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
      * <p/>
      * This parameter parses an email address in standard RFC822 format, e.g.
      * <pre>-Dchanges.sender='Your Name &lt;you@domain>'</pre>.
-     *
-     * @parameter
      */
+    @Parameter
     private String senderString;
     /**
      * The password used to send the email.
-     *
-     * @parameter
      */
+    @Parameter
     private String smtpPassword;
     /**
      * Smtp Server.
-     *
-     * @parameter
-     * @required
      */
+    @Parameter(required = true)
     private String smtpHost;
     /**
      * Port.
-     *
-     * @parameter default-value="25"
-     * @required
      */
+    @Parameter(defaultValue = "25", required = true)
     private int smtpPort;
     /**
      * If the email should be sent in SSL mode.
-     *
-     * @parameter default-value="false"
      */
+    @Parameter(defaultValue = "false")
     private boolean sslMode;
     /**
      * Subject for the email.
-     *
-     * @parameter default-value="[ANNOUNCEMENT] - ${project.name}
-     * ${project.version} released"
-     * @required
      */
+    @Parameter(defaultValue = "[ANNOUNCEMENT] - ${project.name} ${project.version} released", required = true)
     private String subject;
     /**
      * Template file
-     *
-     * @parameter parameter="templateFile" property="templateFile"
      */
+    @Parameter(property = "templateFile")
     File templateFile;
     /**
      * Target file
-     *
-     * @parameter parameter="targetFile" property="targetFile"
-     * default-value="${project.build.directory}/releaseNotes.vm"
-     * @required
      */
+    @Parameter(property = "targetFile", defaultValue = "${project.build.directory}/releaseNotes.vm", required = true)
     File targetFile;
     /**
      * Recipient email address.
-     *
-     * @parameter
      */
+    @Parameter
     private List toAddresses;
     /**
      * Recipient cc email address.
@@ -152,17 +130,16 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
     private List ccAddresses;
     /**
      * Recipient bcc email address.
-     *
-     * @parameter
      */
+    @Parameter
     private List bccAddresses;
     /**
      * The username used to send the email.
-     *
-     * @parameter
      */
+    @Parameter
     private String smtpUsername;
-    private ProjectJavamailMailSender mailer = new ProjectJavamailMailSender();
+
+    private final ProjectJavamailMailSender mailer = new ProjectJavamailMailSender();
 
     @Override
     public void doExecute() throws Exception {

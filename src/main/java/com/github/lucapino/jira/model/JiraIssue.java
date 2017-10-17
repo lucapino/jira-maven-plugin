@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Luca Tagliani.
+ * Copyright 2013-2017 Luca Tagliani.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  *
- * @author tagliani
+ * @author Luca Tagliani
  */
 public class JiraIssue {
 
@@ -60,7 +60,7 @@ public class JiraIssue {
 
     public void addComment(String comment) {
         if (comments == null) {
-            comments = new ArrayList<String>();
+            comments = new ArrayList<>();
         }
         comments.add(comment);
     }

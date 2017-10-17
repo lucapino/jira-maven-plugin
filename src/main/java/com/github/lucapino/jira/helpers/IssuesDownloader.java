@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 tagliani.
+ * Copyright 2013-2017 Luca Tagliani.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.apache.maven.plugin.logging.Log;
 
 /**
  *
- * @author tagliani
+ * @author Luca Tagliani
  */
 public class IssuesDownloader {
 
