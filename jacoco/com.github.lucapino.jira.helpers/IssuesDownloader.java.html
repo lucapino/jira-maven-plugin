@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IssuesDownloader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira.helpers</a> &gt; <span class="el_source">IssuesDownloader.java</span></div><h1>IssuesDownloader.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013-2017 Luca Tagliani.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira.helpers;
+
+import com.atlassian.jira.rest.client.api.domain.BasicComponent;
+import com.atlassian.jira.rest.client.api.domain.BasicPriority;
+import com.atlassian.jira.rest.client.api.domain.Comment;
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Resolution;
+import com.atlassian.jira.rest.client.api.domain.SearchResult;
+import com.atlassian.jira.rest.client.api.domain.User;
+import com.atlassian.jira.rest.client.api.domain.Version;
+import com.github.lucapino.jira.model.JiraIssue;
+import static java.text.MessageFormat.format;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
+/**
+ *
+ * @author Luca Tagliani
+ */
+<span class="fc" id="L38">public class IssuesDownloader {</span>
+
+    protected static final String UTF_8 = &quot;UTF-8&quot;;
+    /**
+     * Log for debug output.
+     */
+    protected Log log;
+    /**
+     * The maximum number of entries to show.
+     */
+    protected int maxIssues;
+    /**
+     * The username to log into JIRA.
+     */
+    protected String jiraUser;
+    /**
+     * The password to log into JIRA.
+     */
+    protected String jiraPassword;
+    /**
+     * The JIRA project key.
+     */
+    protected String jiraProjectKey;
+    /**
+     * The JIRA release version.
+     */
+    protected String releaseVersion;
+    /**
+     * The JQL query template.
+     */
+    protected String jqlTemplate;
+    /**
+     * The JIRA Rest client.
+     */
+    protected JiraClient client;
+
+    public List&lt;JiraIssue&gt; getIssueList() throws MojoFailureException {
+<span class="fc" id="L75">        List&lt;JiraIssue&gt; issues = new ArrayList&lt;&gt;();</span>
+        // strip out -SNAPSHOT from releaseVersion
+<span class="fc" id="L77">        releaseVersion = WordUtils.capitalize(releaseVersion.replace(&quot;-SNAPSHOT&quot;, &quot;&quot;).replace(&quot;-&quot;, &quot; &quot;));</span>
+<span class="fc" id="L78">        String jql = format(jqlTemplate, jiraProjectKey, releaseVersion);</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L80">            log.info(&quot;JQL: &quot; + jql);</span>
+        }
+
+        try {
+<span class="fc" id="L84">            SearchResult remoteIssues = client.getRestClient().getSearchClient().searchJql(jql, maxIssues, 0, null).claim();</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            if (log.isInfoEnabled()) {</span>
+<span class="fc" id="L86">                log.info(&quot;Issues: &quot; + remoteIssues.getTotal());</span>
+            }
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            for (Issue remoteIssue : remoteIssues.getIssues()) {</span>
+<span class="fc" id="L89">                JiraIssue jiraIssue = new JiraIssue();</span>
+<span class="fc" id="L90">                fillIssue(jiraIssue, remoteIssue);</span>
+<span class="fc" id="L91">                issues.add(jiraIssue);</span>
+<span class="fc" id="L92">            }</span>
+<span class="nc" id="L93">        } catch (MojoFailureException ex) {</span>
+<span class="nc" id="L94">            log.warn(&quot;No issues found.&quot;);</span>
+<span class="fc" id="L95">        }</span>
+<span class="fc" id="L96">        return issues;</span>
+    }
+
+    public void setClient(JiraClient client) {
+<span class="fc" id="L100">        this.client = client;</span>
+<span class="fc" id="L101">    }</span>
+
+    public void setJqlTemplate(String jqlTemplate) {
+<span class="fc" id="L104">        this.jqlTemplate = jqlTemplate;</span>
+<span class="fc" id="L105">    }</span>
+
+    public void setReleaseVersion(String releaseVersion) {
+<span class="fc" id="L108">        this.releaseVersion = releaseVersion;</span>
+<span class="fc" id="L109">    }</span>
+
+    public void setJiraProjectKey(String jiraProjectKey) {
+<span class="fc" id="L112">        this.jiraProjectKey = jiraProjectKey;</span>
+<span class="fc" id="L113">    }</span>
+
+    /**
+     * Sets the maximum number of Issues to show.
+     *
+     * @param maxIssues The maximum number of Issues
+     */
+    public void setMaxIssues(final int maxIssues) {
+<span class="fc" id="L121">        this.maxIssues = maxIssues;</span>
+<span class="fc" id="L122">    }</span>
+
+    /**
+     * Sets the password to log into a secured JIRA.
+     *
+     * @param thisJiraPassword The password for JIRA
+     */
+    public void setJiraPassword(final String thisJiraPassword) {
+<span class="fc" id="L130">        this.jiraPassword = thisJiraPassword;</span>
+<span class="fc" id="L131">    }</span>
+
+    /**
+     * Sets the username to log into a secured JIRA.
+     *
+     * @param thisJiraUser The username for JIRA
+     */
+    public void setJiraUser(String thisJiraUser) {
+<span class="fc" id="L139">        this.jiraUser = thisJiraUser;</span>
+<span class="fc" id="L140">    }</span>
+
+    public void setLog(Log log) {
+<span class="fc" id="L143">        this.log = log;</span>
+<span class="fc" id="L144">    }</span>
+
+    protected Log getLog() {
+<span class="nc" id="L147">        return log;</span>
+    }
+
+    protected void fillIssue(JiraIssue issue, Issue remoteIssue) throws MojoFailureException {
+        // reporter
+<span class="fc" id="L152">        User reporter = remoteIssue.getReporter();</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        if (reporter != null) {</span>
+<span class="fc" id="L154">            issue.setReporter(reporter.getDisplayName());</span>
+        }
+        // type
+<span class="fc" id="L157">        issue.setType(remoteIssue.getIssueType().getName());</span>
+        // key
+<span class="fc" id="L159">        issue.setKey(remoteIssue.getKey());</span>
+<span class="fc" id="L160">        issue.setLink(String.format(&quot;%s/browse/%s&quot;, client.getJiraURL(), remoteIssue.getKey()));</span>
+<span class="fc" id="L161">        User assignee = remoteIssue.getAssignee();</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        if (assignee != null) {</span>
+<span class="fc" id="L163">            issue.setAssignee(assignee.getDisplayName());</span>
+        }
+<span class="fc" id="L165">        issue.setCreated(remoteIssue.getCreationDate().toDate());</span>
+<span class="fc" id="L166">        issue.setId(remoteIssue.getId().toString());</span>
+<span class="fc" id="L167">        BasicPriority priority = remoteIssue.getPriority();</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        if (priority != null) {</span>
+<span class="fc" id="L169">            issue.setPriority(priority.getName());</span>
+        }
+<span class="fc" id="L171">        Resolution resolution = remoteIssue.getResolution();</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (resolution != null) {</span>
+<span class="fc" id="L173">            issue.setResolution(resolution.getName());</span>
+        }
+<span class="fc" id="L175">        issue.setStatus(remoteIssue.getStatus().getName());</span>
+
+<span class="fc" id="L177">        issue.setSummary(remoteIssue.getSummary());</span>
+<span class="fc" id="L178">        issue.setUpdated(remoteIssue.getUpdateDate().toDate());</span>
+
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        for (Comment remoteComment : remoteIssue.getComments()) {</span>
+<span class="nc" id="L181">            issue.addComment(remoteComment.getBody());</span>
+<span class="nc" id="L182">        }</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        for (BasicComponent remoteComponent : remoteIssue.getComponents()) {</span>
+<span class="fc" id="L184">            issue.addComponent(remoteComponent.getName());</span>
+<span class="fc" id="L185">        }</span>
+<span class="fc" id="L186">        Iterable&lt;Version&gt; fixVersions = remoteIssue.getFixVersions();</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">        if (fixVersions != null) {</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">            for (Version remoteVersion : fixVersions) {</span>
+<span class="fc" id="L189">                issue.addFixVersion(remoteVersion.getName());</span>
+<span class="fc" id="L190">            }</span>
+        }
+<span class="fc" id="L192">    }</span>
+
+    protected MojoFailureException fail(String message, Exception e) {
+<span class="nc" id="L195">        getLog().error(message, e);</span>
+<span class="nc" id="L196">        return new MojoFailureException(e, message, e.getMessage());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

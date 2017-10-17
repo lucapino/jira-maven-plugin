@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractJiraMavenReport.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira</a> &gt; <span class="el_source">AbstractJiraMavenReport.java</span></div><h1>AbstractJiraMavenReport.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2011 Tomasz Maciejewski
+ * Copyright 2012 George Gastaldi
+ * Copyright 2013-2017 Luca Tagliani
+ * 
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira;
+
+import com.github.lucapino.jira.helpers.IssuesReportHelper;
+import com.github.lucapino.jira.helpers.JiraClient;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.reporting.AbstractMavenReport;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
+
+/**
+ *
+ * @author Tagliani
+ */
+public abstract class AbstractJiraMavenReport extends AbstractMavenReport {
+
+    /**
+     * Report output encoding. Note that this parameter is only relevant if the
+     * goal is run from the command line or from the default build lifecycle. If
+     * the goal is run indirectly as part of a site generation, the output
+     * encoding configured in the Maven Site Plugin is used instead.
+     */
+    @Parameter(defaultValue = &quot;${project.reporting.outputEncoding}&quot;, property = &quot;outputEncoding&quot;)
+    protected String outputEncoding;
+    /**
+     * Skip plugin execution
+     */
+    @Parameter(defaultValue = &quot;false&quot;)
+    public boolean skip;
+    /**
+     * Max number of issues to return
+     */
+<span class="nc" id="L52">    @Parameter(defaultValue = &quot;100&quot;, required = true)</span>
+    int maxIssues = 100;
+    /**
+     * Server's id in settings.xml to look up username and password.
+     */
+    @Parameter
+    protected String serverId;
+    /**
+     * JIRA Installation URL. If not informed, it will use the
+     * project.issueManagement.url info.
+     */
+    @Parameter(name = &quot;jira.url&quot;, defaultValue = &quot;${project.issueManagement.url}&quot;, required = true)
+    protected String url;
+    /**
+     * JIRA Authentication User.
+     */
+    @Parameter(defaultValue = &quot;${scmUsername}&quot;)
+    protected String username;
+    /**
+     * JIRA Authentication Password.
+     */
+    @Parameter(defaultValue = &quot;${scmPassword}&quot;)
+    protected String password;
+    /**
+     * JIRA Project Key.
+     */
+    @Parameter(required = true)
+    protected String jiraProjectKey;
+    /**
+     * JQL Template to generate release notes. Parameter 0 = Project Key
+     * Parameter 1 = Fix version
+     */
+<span class="nc" id="L84">    @Parameter(defaultValue = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;, required = true)</span>
+    protected String jqlTemplate = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;;
+    /**
+     * Sets the names of the columns that you want in the report. The columns
+     * will appear in the report in the same order as you specify them here.
+     * Multiple values can be separated by commas.
+     * &lt;p&gt;
+     * Valid columns are: &lt;code&gt;Assignee&lt;/code&gt;, &lt;code&gt;Component&lt;/code&gt;,
+     * &lt;code&gt;Created&lt;/code&gt;, &lt;code&gt;Fix Version&lt;/code&gt;, &lt;code&gt;Id&lt;/code&gt;,
+     * &lt;code&gt;Key&lt;/code&gt;, &lt;code&gt;Priority&lt;/code&gt;, &lt;code&gt;Reporter&lt;/code&gt;,
+     * &lt;code&gt;Resolution&lt;/code&gt;, &lt;code&gt;Status&lt;/code&gt;, &lt;code&gt;Summary&lt;/code&gt;,
+     * &lt;code&gt;Type&lt;/code&gt;, &lt;code&gt;Updated&lt;/code&gt; and &lt;code&gt;Version&lt;/code&gt;.
+     * &lt;/p&gt;
+     */
+    @Parameter(defaultValue = &quot;Key,Summary,Status,Resolution,Assignee&quot;)
+    protected String columnNames;
+
+    /**
+     * Maven settings
+     */
+    @Parameter(defaultValue = &quot;${settings}&quot;, readonly = true, required = true)
+    protected Settings settings;
+    /**
+     * Released Version
+     */
+    @Parameter(defaultValue = &quot;${project.version}&quot;, required = true)
+    public String releaseVersion;
+
+    /**
+     * Valid JIRA columns.
+     */
+<span class="nc" id="L115">    protected static final Map&lt;String, Integer&gt; JIRA_COLUMNS = new HashMap&lt;String, Integer&gt;(15);</span>
+
+    static {
+<span class="nc" id="L118">        JIRA_COLUMNS.put(&quot;Assignee&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_ASSIGNEE));</span>
+<span class="nc" id="L119">        JIRA_COLUMNS.put(&quot;Component&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_COMPONENT));</span>
+<span class="nc" id="L120">        JIRA_COLUMNS.put(&quot;Created&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_CREATED));</span>
+<span class="nc" id="L121">        JIRA_COLUMNS.put(&quot;Fix Version&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_FIX_VERSION));</span>
+<span class="nc" id="L122">        JIRA_COLUMNS.put(&quot;Id&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_ID));</span>
+<span class="nc" id="L123">        JIRA_COLUMNS.put(&quot;Key&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_KEY));</span>
+<span class="nc" id="L124">        JIRA_COLUMNS.put(&quot;Priority&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_PRIORITY));</span>
+<span class="nc" id="L125">        JIRA_COLUMNS.put(&quot;Reporter&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_REPORTER));</span>
+<span class="nc" id="L126">        JIRA_COLUMNS.put(&quot;Resolution&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_RESOLUTION));</span>
+<span class="nc" id="L127">        JIRA_COLUMNS.put(&quot;Status&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_STATUS));</span>
+<span class="nc" id="L128">        JIRA_COLUMNS.put(&quot;Summary&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_SUMMARY));</span>
+<span class="nc" id="L129">        JIRA_COLUMNS.put(&quot;Type&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_TYPE));</span>
+<span class="nc" id="L130">        JIRA_COLUMNS.put(&quot;Updated&quot;, Integer.valueOf(IssuesReportHelper.COLUMN_UPDATED));</span>
+<span class="nc" id="L131">    }</span>
+
+    protected JiraClient client;
+
+<span class="nc" id="L135">    public AbstractJiraMavenReport() {</span>
+<span class="nc" id="L136">        loadUserCredentials();</span>
+<span class="nc" id="L137">    }</span>
+
+    public JiraClient getClient() throws MojoFailureException {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (client == null) {</span>
+<span class="nc" id="L141">            getLog().debug(&quot;Connecting to JIRA server&quot;);</span>
+            try {
+<span class="nc" id="L143">                client = new JiraClient(username, password, url);</span>
+<span class="nc" id="L144">                getLog().info(&quot;Successfuly connected to JIRA server&quot;);</span>
+<span class="nc" id="L145">            } catch (Exception e) {</span>
+<span class="nc" id="L146">                getLog().error(&quot;Unable to connect to JIRA server&quot;, e);</span>
+<span class="nc" id="L147">            }</span>
+        }
+<span class="nc" id="L149">        return client;</span>
+    }
+
+    private void loadUserCredentials() {
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (serverId == null) {</span>
+<span class="nc" id="L154">            serverId = url;</span>
+        }
+        // read credentials from settings.xml if user has not set them in configuration
+<span class="nc bnc" id="L157" title="All 6 branches missed.">        if ((username == null || password == null) &amp;&amp; settings != null) {</span>
+<span class="nc" id="L158">            Server server = settings.getServer(serverId);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (server != null) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (username == null) {</span>
+<span class="nc" id="L161">                    username = server.getUsername();</span>
+                }
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                if (password == null) {</span>
+<span class="nc" id="L164">                    password = server.getPassword();</span>
+                }
+            }
+        }
+<span class="nc" id="L168">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

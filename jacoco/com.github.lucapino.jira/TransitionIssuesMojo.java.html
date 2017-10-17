@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransitionIssuesMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira</a> &gt; <span class="el_source">TransitionIssuesMojo.java</span></div><h1>TransitionIssuesMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2012 George Gastaldi
+ * Copyright 2013-2017 Luca Tagliani
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira;
+
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Transition;
+import com.atlassian.jira.rest.client.api.domain.input.TransitionInput;
+import com.github.lucapino.jira.helpers.IssuesDownloader;
+import com.github.lucapino.jira.model.JiraIssue;
+import java.rmi.RemoteException;
+import java.util.List;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+/**
+ * Goal that made a transition on the given issues.
+ *
+ * @author Luca Tagliani
+ */
+@Mojo(name = &quot;transition-issues&quot;)
+<span class="nc" id="L37">public class TransitionIssuesMojo extends AbstractJiraMojo {</span>
+
+    /**
+     * JQL Template to retrieve Resolved issues. Parameter 0 = Project Key
+     * Parameter 1 = Fix version
+     */
+<span class="nc" id="L43">    @Parameter(defaultValue = &quot;project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''&quot;, required = true)</span>
+    String jqlTemplate = &quot;project = ''{0}'' AND status in (Resolved) AND fixVersion = ''{1}''&quot;;
+    /**
+     * Max number of issues to return
+     */
+<span class="nc" id="L48">    @Parameter(defaultValue = &quot;100&quot;)</span>
+    int maxIssues = 100;
+    /**
+     * Released Version
+     */
+    @Parameter(defaultValue = &quot;${project.version}&quot;, required = true)
+    String releaseVersion;
+    /**
+     * Transition to take
+     */
+    @Parameter(required = true)
+    String transition;
+
+    @Override
+    public void doExecute() throws Exception {
+<span class="nc" id="L63">        Log log = getLog();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (transition == null) {</span>
+<span class="nc" id="L65">            log.info(&quot;Transition not specified. Nothing to do&quot;);</span>
+        }
+<span class="nc" id="L67">        IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
+<span class="nc" id="L68">        configureIssueDownloader(issuesDownloader);</span>
+<span class="nc" id="L69">        List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
+<span class="nc" id="L70">        transitionIssues(issues, transition);</span>
+<span class="nc" id="L71">    }</span>
+
+    public void setReleaseVersion(String releaseVersion) {
+<span class="nc" id="L74">        this.releaseVersion = releaseVersion;</span>
+<span class="nc" id="L75">    }</span>
+
+    public void setJqlTemplate(String jqlTemplate) {
+<span class="nc" id="L78">        this.jqlTemplate = jqlTemplate;</span>
+<span class="nc" id="L79">    }</span>
+
+    private void transitionIssues(List&lt;JiraIssue&gt; issues, String transition) throws RemoteException, MojoFailureException {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (JiraIssue issue : issues) {</span>
+<span class="nc" id="L83">            Issue remoteIssue = issue.getRemoteIssue();</span>
+<span class="nc" id="L84">            Iterable&lt;Transition&gt; transitions = jiraClient.getRestClient().getIssueClient().getTransitions(remoteIssue).claim();</span>
+<span class="nc bnc" id="L85" title="All 4 branches missed.">            if (transitions == null || !transitions.iterator().hasNext()) {</span>
+<span class="nc" id="L86">                getLog().warn(&quot;No transitions found for issue &quot; + issue.getKey());</span>
+            } else {
+<span class="nc" id="L88">                boolean found = false;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                for (Transition remoteTransition : transitions) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                    if (remoteTransition.getName().equals(transition)) {</span>
+<span class="nc" id="L91">                        TransitionInput transitionToTake = new TransitionInput(remoteTransition.getId());</span>
+<span class="nc" id="L92">                        jiraClient.getRestClient().getIssueClient().transition(remoteIssue, transitionToTake).claim();</span>
+<span class="nc" id="L93">                        found = true;</span>
+<span class="nc" id="L94">                        break;</span>
+                    }
+<span class="nc" id="L96">                }</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                if (!found) {</span>
+<span class="nc" id="L98">                    getLog().warn(&quot;No transition with name '&quot; + transition + &quot;' found for issue &quot; + issue.getKey());</span>
+                }
+            }
+<span class="nc" id="L101">        }</span>
+<span class="nc" id="L102">    }</span>
+
+    private void configureIssueDownloader(IssuesDownloader issueDownloader) {
+<span class="nc" id="L105">        issueDownloader.setLog(getLog());</span>
+<span class="nc" id="L106">        issueDownloader.setMaxIssues(maxIssues);</span>
+<span class="nc" id="L107">        issueDownloader.setJiraUser(jiraUser);</span>
+<span class="nc" id="L108">        issueDownloader.setJiraPassword(jiraPassword);</span>
+<span class="nc" id="L109">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
+<span class="nc" id="L110">        issueDownloader.setReleaseVersion(releaseVersion);</span>
+<span class="nc" id="L111">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
+<span class="nc" id="L112">        issueDownloader.setClient(jiraClient);</span>
+<span class="nc" id="L113">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

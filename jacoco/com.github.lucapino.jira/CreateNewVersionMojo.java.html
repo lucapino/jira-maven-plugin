@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateNewVersionMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira</a> &gt; <span class="el_source">CreateNewVersionMojo.java</span></div><h1>CreateNewVersionMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2012 George Gastaldi
+ * Copyright 2013-2017 Luca Tagliani
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira;
+
+import com.atlassian.jira.rest.client.api.domain.Project;
+import com.atlassian.jira.rest.client.api.domain.Version;
+import com.atlassian.jira.rest.client.api.domain.input.VersionInput;
+import com.github.lucapino.jira.helpers.RemoteVersionComparator;
+import java.util.Comparator;
+import org.apache.commons.lang.WordUtils;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+/**
+ * Goal that creates a version in a JIRA project.
+ *
+ * @author George Gastaldi
+ * @author Luca Tagliani
+ */
+@Mojo(name = &quot;create-new-jira-version&quot;)
+@Execute(goal = &quot;create-new-jira-version&quot;, phase = LifecyclePhase.DEPLOY)
+<span class="nc" id="L39">public class CreateNewVersionMojo extends AbstractJiraMojo {</span>
+
+    /**
+     * Next Development Version
+     */
+    @Parameter(defaultValue = &quot;${project.version}&quot;, required = true)
+    String developmentVersion;
+    /**
+     * Final name
+     */
+    @Parameter(defaultValue = &quot;${project.build.finalName}&quot;)
+    String finalName;
+    /**
+     * Whether the final name is to be used for the version; defaults to false.
+     */
+    @Parameter(defaultValue = &quot;false&quot;)
+    boolean finalNameUsedForVersion;
+    /**
+     * Comparator for discovering the latest release
+     */
+<span class="nc" id="L59">    Comparator&lt;Version&gt; remoteVersionComparator = new RemoteVersionComparator();</span>
+
+    @Override
+    public void doExecute() throws Exception {
+<span class="nc" id="L63">        Log log = getLog();</span>
+
+<span class="nc" id="L65">        Project jiraProject = jiraClient.getRestClient().getProjectClient().getProject(jiraProjectKey).claim();</span>
+<span class="nc" id="L66">        Iterable&lt;Version&gt; versions = jiraProject.getVersions();</span>
+        String newDevVersion;
+
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (finalNameUsedForVersion) {</span>
+<span class="nc" id="L70">            newDevVersion = finalName;</span>
+        } else {
+<span class="nc" id="L72">            newDevVersion = developmentVersion;</span>
+        }
+
+        // Removing -SNAPSHOT suffix for safety and sensible formatting
+<span class="nc" id="L76">        newDevVersion = WordUtils.capitalize(newDevVersion.replace(</span>
+<span class="nc" id="L77">                &quot;-SNAPSHOT&quot;, &quot;&quot;).replace(&quot;-&quot;, &quot; &quot;));</span>
+
+<span class="nc" id="L79">        boolean versionExists = isVersionAlreadyPresent(versions, newDevVersion);</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!versionExists) {</span>
+
+<span class="nc" id="L83">            VersionInput newVersion = new VersionInput(jiraProjectKey, newDevVersion, null, null, false, false);</span>
+<span class="nc" id="L84">            log.debug(&quot;New Development version in JIRA is: &quot; + newDevVersion);</span>
+<span class="nc" id="L85">            jiraClient.getRestClient().getVersionRestClient().createVersion(newVersion).claim();</span>
+
+<span class="nc" id="L87">            log.info(&quot;Version created in JIRA for project key &quot;</span>
+                    + jiraProjectKey + &quot; : &quot; + newDevVersion);
+<span class="nc" id="L89">        } else {</span>
+<span class="nc" id="L90">            log.warn(String.format(</span>
+                    &quot;Version %s is already created in JIRA. Nothing to do.&quot;,
+                    newDevVersion));
+        }
+
+<span class="nc" id="L95">    }</span>
+
+    /**
+     * Check if version is already present on array
+     *
+     * @param versions
+     * @param newDevVersion
+     * @return
+     */
+    boolean isVersionAlreadyPresent(Iterable&lt;Version&gt; versions,
+            String newDevVersion) {
+<span class="nc" id="L106">        boolean versionExists = false;</span>
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (versions != null) {</span>
+            // Creating new Version (if not already created)
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            for (Version remoteVersion : versions) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (remoteVersion.getName().equalsIgnoreCase(newDevVersion)) {</span>
+<span class="nc" id="L112">                    versionExists = true;</span>
+<span class="nc" id="L113">                    break;</span>
+                }
+<span class="nc" id="L115">            }</span>
+        }
+
+        // existant
+<span class="nc" id="L119">        return versionExists;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

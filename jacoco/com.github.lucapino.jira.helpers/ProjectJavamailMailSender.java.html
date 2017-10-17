@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProjectJavamailMailSender.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira.helpers</a> &gt; <span class="el_source">ProjectJavamailMailSender.java</span></div><h1>ProjectJavamailMailSender.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013-2017 Luca Tagliani.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira.helpers;
+
+import java.security.Security;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Properties;
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import org.codehaus.plexus.mailsender.AbstractMailSender;
+import org.codehaus.plexus.mailsender.MailMessage;
+import org.codehaus.plexus.mailsender.MailSenderException;
+import org.codehaus.plexus.mailsender.util.DateFormatUtils;
+import org.codehaus.plexus.util.StringUtils;
+
+/**
+ * Helper class for sending email.
+ */
+<span class="nc" id="L39">public class ProjectJavamailMailSender</span>
+        extends AbstractMailSender {
+
+    private static final String SSL_FACTORY = &quot;javax.net.ssl.SSLSocketFactory&quot;;
+    // ----------------------------------------------------------------------
+    //
+    // ----------------------------------------------------------------------
+    private Properties userProperties;
+    private Properties props;
+
+    // ----------------------------------------------------------------------
+    // Component Lifecycle
+    // ----------------------------------------------------------------------
+    public void initialize() {
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (StringUtils.isEmpty(getSmtpHost())) {</span>
+<span class="nc" id="L54">            System.out.println(&quot;Error in configuration: Missing smtpHost.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (getSmtpPort() == 0) {</span>
+<span class="nc" id="L58">            setSmtpPort(DEFAULT_SMTP_PORT);</span>
+        }
+
+<span class="nc" id="L61">        props = new Properties();</span>
+
+<span class="nc" id="L63">        props.put(&quot;mail.smtp.host&quot;, getSmtpHost());</span>
+
+<span class="nc" id="L65">        props.put(&quot;mail.smtp.port&quot;, String.valueOf(getSmtpPort()));</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (getUsername() != null) {</span>
+<span class="nc" id="L68">            props.put(&quot;mail.smtp.auth&quot;, &quot;true&quot;);</span>
+        }
+
+<span class="nc" id="L71">        props.put(&quot;mail.debug&quot;, String.valueOf(getLogger().isDebugEnabled()));</span>
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (isSslMode()) {</span>
+            try {
+                // Try to load the SSL Provider class before we use it, it isn't present in non-Sun JVMs
+<span class="nc" id="L76">                this.getClass().getClassLoader().loadClass(&quot;com.sun.net.ssl.internal.ssl.Provider&quot;);</span>
+
+<span class="nc" id="L78">                Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());</span>
+
+<span class="nc" id="L80">                props.put(&quot;mail.smtp.socketFactory.port&quot;, String.valueOf(getSmtpPort()));</span>
+
+<span class="nc" id="L82">                props.put(&quot;mail.smtp.socketFactory.class&quot;, SSL_FACTORY);</span>
+
+<span class="nc" id="L84">                props.put(&quot;mail.smtp.socketFactory.fallback&quot;, &quot;false&quot;);</span>
+<span class="nc" id="L85">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L86">                getLogger().error(&quot;You can't use sslMode because your system is missing an SSL Provider.&quot;, e);</span>
+<span class="nc" id="L87">            }</span>
+        }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (userProperties != null) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            for (Iterator i = userProperties.keySet().iterator(); i.hasNext();) {</span>
+<span class="nc" id="L91">                String key = (String) i.next();</span>
+
+<span class="nc" id="L93">                String value = userProperties.getProperty(key);</span>
+
+<span class="nc" id="L95">                props.put(key, value);</span>
+<span class="nc" id="L96">            }</span>
+        }
+<span class="nc" id="L98">    }</span>
+
+    // ----------------------------------------------------------------------
+    // MailSender Implementation
+    // ----------------------------------------------------------------------
+    @Override
+    public void send(MailMessage mail)
+            throws MailSenderException {
+<span class="nc" id="L106">        verify(mail);</span>
+
+        try {
+<span class="nc" id="L109">            Authenticator auth = null;</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (getUsername() != null) {</span>
+<span class="nc" id="L112">                auth = new Authenticator() {</span>
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+<span class="nc" id="L115">                        return new PasswordAuthentication(getUsername(), getPassword());</span>
+                    }
+                };
+            }
+
+<span class="nc" id="L120">            Session session = Session.getDefaultInstance(props, auth);</span>
+
+<span class="nc" id="L122">            session.setDebug(getLogger().isDebugEnabled());</span>
+
+<span class="nc" id="L124">            Message msg = new MimeMessage(session);</span>
+<span class="nc" id="L125">            InternetAddress addressFrom = new InternetAddress(mail.getFrom().getRfc2822Address());</span>
+<span class="nc" id="L126">            msg.setFrom(addressFrom);</span>
+
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            if (mail.getToAddresses().size() &gt; 0) {</span>
+<span class="nc" id="L129">                InternetAddress[] addressTo = new InternetAddress[mail.getToAddresses().size()];</span>
+<span class="nc" id="L130">                int count = 0;</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                for (Iterator i = mail.getToAddresses().iterator(); i.hasNext();) {</span>
+<span class="nc" id="L132">                    String address = ((MailMessage.Address) i.next()).getRfc2822Address();</span>
+<span class="nc" id="L133">                    addressTo[count++] = new InternetAddress(address);</span>
+<span class="nc" id="L134">                }</span>
+<span class="nc" id="L135">                msg.setRecipients(Message.RecipientType.TO, addressTo);</span>
+            }
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (mail.getCcAddresses().size() &gt; 0) {</span>
+<span class="nc" id="L139">                InternetAddress[] addressCc = new InternetAddress[mail.getCcAddresses().size()];</span>
+<span class="nc" id="L140">                int count = 0;</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                for (Iterator i = mail.getCcAddresses().iterator(); i.hasNext();) {</span>
+<span class="nc" id="L142">                    String address = ((MailMessage.Address) i.next()).getRfc2822Address();</span>
+<span class="nc" id="L143">                    addressCc[count++] = new InternetAddress(address);</span>
+<span class="nc" id="L144">                }</span>
+<span class="nc" id="L145">                msg.setRecipients(Message.RecipientType.CC, addressCc);</span>
+            }
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (mail.getBccAddresses().size() &gt; 0) {</span>
+<span class="nc" id="L149">                InternetAddress[] addressBcc = new InternetAddress[mail.getBccAddresses().size()];</span>
+<span class="nc" id="L150">                int count = 0;</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                for (Iterator i = mail.getBccAddresses().iterator(); i.hasNext();) {</span>
+<span class="nc" id="L152">                    String address = ((MailMessage.Address) i.next()).getRfc2822Address();</span>
+<span class="nc" id="L153">                    addressBcc[count++] = new InternetAddress(address);</span>
+<span class="nc" id="L154">                }</span>
+<span class="nc" id="L155">                msg.setRecipients(Message.RecipientType.BCC, addressBcc);</span>
+            }
+
+            // Setting the Subject and Content Type
+<span class="nc" id="L159">            msg.setSubject(mail.getSubject());</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            msg.setContent(mail.getContent(), mail.getContentType() == null ? &quot;text/plain&quot; : mail.getContentType());</span>
+
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (mail.getSendDate() != null) {</span>
+<span class="nc" id="L163">                msg.setHeader(&quot;Date&quot;, DateFormatUtils.getDateHeader(mail.getSendDate()));</span>
+            } else {
+<span class="nc" id="L165">                msg.setHeader(&quot;Date&quot;, DateFormatUtils.getDateHeader(new Date()));</span>
+            }
+
+            // Send the message
+<span class="nc" id="L169">            Transport.send(msg);</span>
+<span class="nc" id="L170">        } catch (MessagingException e) {</span>
+<span class="nc" id="L171">            throw new MailSenderException(&quot;Error while sending mail.&quot;, e);</span>
+<span class="nc" id="L172">        }</span>
+<span class="nc" id="L173">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

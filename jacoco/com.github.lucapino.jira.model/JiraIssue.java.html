@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JiraIssue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira.model</a> &gt; <span class="el_source">JiraIssue.java</span></div><h1>JiraIssue.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013-2017 Luca Tagliani.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira.model;
+
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ *
+ * @author Luca Tagliani
+ */
+public class JiraIssue {
+
+    private String assignee;
+    private List&lt;String&gt; comments;
+    private List&lt;String&gt; components;
+    private Date created;
+    private List&lt;String&gt; fixVersions;
+    private String id;
+    private String key;
+    private String link;
+    private String priority;
+    private String reporter;
+    private String resolution;
+    private String status;
+    private String summary;
+    private String type;
+    private Date updated;
+    private Issue remoteIssue;
+
+<span class="fc" id="L46">    public JiraIssue() {</span>
+<span class="fc" id="L47">    }</span>
+
+    public String getAssignee() {
+<span class="nc" id="L50">        return assignee;</span>
+    }
+
+    public void setAssignee(String assignee) {
+<span class="fc" id="L54">        this.assignee = assignee;</span>
+<span class="fc" id="L55">    }</span>
+
+    public List&lt;String&gt; getComments() {
+<span class="nc" id="L58">        return comments;</span>
+    }
+
+    public void addComment(String comment) {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (comments == null) {</span>
+<span class="nc" id="L63">            comments = new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L65">        comments.add(comment);</span>
+<span class="nc" id="L66">    }</span>
+
+    public List&lt;String&gt; getComponents() {
+<span class="nc" id="L69">        return components;</span>
+    }
+
+    public void addComponent(String component) {
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (components == null) {</span>
+<span class="fc" id="L74">            components = new ArrayList&lt;&gt;();</span>
+        }
+<span class="fc" id="L76">        components.add(component);</span>
+<span class="fc" id="L77">    }</span>
+
+    public Date getCreated() {
+<span class="nc" id="L80">        return created;</span>
+    }
+
+    public void setCreated(Date created) {
+<span class="fc" id="L84">        this.created = created;</span>
+<span class="fc" id="L85">    }</span>
+
+    public List&lt;String&gt; getFixVersions() {
+<span class="nc" id="L88">        return fixVersions;</span>
+    }
+
+    public void addFixVersion(String fixVersion) {
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (fixVersions == null) {</span>
+<span class="fc" id="L93">            fixVersions = new ArrayList&lt;&gt;();</span>
+        }
+<span class="fc" id="L95">        fixVersions.add(fixVersion);</span>
+<span class="fc" id="L96">    }</span>
+
+    public String getId() {
+<span class="nc" id="L99">        return id;</span>
+    }
+
+    public void setId(String id) {
+<span class="fc" id="L103">        this.id = id;</span>
+<span class="fc" id="L104">    }</span>
+
+    public String getKey() {
+<span class="fc" id="L107">        return key;</span>
+    }
+
+    public void setKey(String key) {
+<span class="fc" id="L111">        this.key = key;</span>
+<span class="fc" id="L112">    }</span>
+
+    public String getLink() {
+<span class="fc" id="L115">        return link;</span>
+    }
+
+    public void setLink(String link) {
+<span class="fc" id="L119">        this.link = link;</span>
+<span class="fc" id="L120">    }</span>
+
+    public String getPriority() {
+<span class="nc" id="L123">        return priority;</span>
+    }
+
+    public void setPriority(String priority) {
+<span class="fc" id="L127">        this.priority = priority;</span>
+<span class="fc" id="L128">    }</span>
+
+    public String getReporter() {
+<span class="fc" id="L131">        return reporter;</span>
+    }
+
+    public void setReporter(String reporter) {
+<span class="fc" id="L135">        this.reporter = reporter;</span>
+<span class="fc" id="L136">    }</span>
+
+    public String getResolution() {
+<span class="nc" id="L139">        return resolution;</span>
+    }
+
+    public void setResolution(String resolution) {
+<span class="fc" id="L143">        this.resolution = resolution;</span>
+<span class="fc" id="L144">    }</span>
+
+    public String getStatus() {
+<span class="nc" id="L147">        return status;</span>
+    }
+
+    public void setStatus(String status) {
+<span class="fc" id="L151">        this.status = status;</span>
+<span class="fc" id="L152">    }</span>
+
+    public String getSummary() {
+<span class="fc" id="L155">        return summary;</span>
+    }
+
+    public void setSummary(String summary) {
+<span class="fc" id="L159">        this.summary = summary;</span>
+<span class="fc" id="L160">    }</span>
+
+    public String getType() {
+<span class="fc" id="L163">        return type;</span>
+    }
+
+    public void setType(String type) {
+<span class="fc" id="L167">        this.type = type;</span>
+<span class="fc" id="L168">    }</span>
+
+    public Date getUpdated() {
+<span class="nc" id="L171">        return updated;</span>
+    }
+
+    public void setUpdated(Date updated) {
+<span class="fc" id="L175">        this.updated = updated;</span>
+<span class="fc" id="L176">    }</span>
+
+    public Issue getRemoteIssue() {
+<span class="nc" id="L179">        return remoteIssue;</span>
+    }
+
+    public void setRemoteIssue(Issue remoteIssue) {
+<span class="nc" id="L183">        this.remoteIssue = remoteIssue;</span>
+<span class="nc" id="L184">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

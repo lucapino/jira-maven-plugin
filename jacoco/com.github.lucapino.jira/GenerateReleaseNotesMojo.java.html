@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenerateReleaseNotesMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira</a> &gt; <span class="el_source">GenerateReleaseNotesMojo.java</span></div><h1>GenerateReleaseNotesMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2012 George Gastaldi
+ * Copyright 2013-2017 Luca Tagliani
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira;
+
+import com.github.lucapino.jira.helpers.IssuesDownloader;
+import com.github.lucapino.jira.helpers.JiraIssueComparator;
+import com.github.lucapino.jira.model.JiraIssue;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+
+/**
+ * Goal that generates release notes based on a version in a JIRA project.
+ *
+ * @author George Gastaldi
+ */
+@Mojo(name = &quot;generate-release-notes&quot;)
+@Execute(goal = &quot;generate-release-notes&quot;, phase = LifecyclePhase.DEPLOY)
+<span class="fc" id="L48">public class GenerateReleaseNotesMojo extends AbstractJiraMojo {</span>
+
+    /**
+     * JQL Template to generate release notes. Parameter 0 = Project Key
+     * Parameter 1 = Fix version
+     */
+<span class="fc" id="L54">    @Parameter(name = &quot;jqlTemplate&quot;, defaultValue = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;,</span>
+            required = true)
+    String jqlTemplate = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;;
+    /**
+     * Max number of issues to return
+     */
+<span class="fc" id="L60">    @Parameter(name = &quot;maxIssues&quot;, defaultValue = &quot;100&quot;)</span>
+    int maxIssues = 100;
+    /**
+     * Released Version
+     */
+    @Parameter(name = &quot;releaseVersion&quot;, defaultValue = &quot;${project.version}&quot;)
+    String releaseVersion;
+    /**
+     * Map of custom parameters for the announcement. This Map will be passed to
+     * the template.
+     */
+    @Parameter
+    private Map announceParameters;
+    /**
+     * Template file
+     */
+    @Parameter(name = &quot;templateFile&quot;, property = &quot;templateFile&quot;)
+    File templateFile;
+    /**
+     * Target file
+     */
+    @Parameter(name = &quot;targetFile&quot;, property = &quot;targetFile&quot;, defaultValue = &quot;${project.build.directory}/releaseNotes.vm&quot;, required = true)
+    File targetFile;
+    /**
+     * Text to be appended BEFORE all issues details.
+     */
+    @Parameter(name = &quot;beforeText&quot;)
+    String beforeText;
+    /**
+     * Text to be appended AFTER all issues details.
+     */
+    @Parameter(name = &quot;afterText&quot;)
+    String afterText;
+
+    @Override
+    public void doExecute() throws Exception {
+<span class="fc" id="L96">        IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
+<span class="fc" id="L97">        configureIssueDownloader(issuesDownloader);</span>
+<span class="fc" id="L98">        List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
+<span class="fc" id="L99">        output(issues);</span>
+<span class="fc" id="L100">    }</span>
+
+    /**
+     * Writes issues to output
+     *
+     * @param issues
+     */
+    void output(List&lt;JiraIssue&gt; issues) throws IOException, MojoFailureException {
+
+<span class="fc" id="L109">        Log log = getLog();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (targetFile == null) {</span>
+<span class="nc" id="L111">            log.warn(&quot;No targetFile specified. Ignoring&quot;);</span>
+<span class="nc" id="L112">            return;</span>
+        }
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (issues == null) {</span>
+<span class="nc" id="L115">            log.warn(&quot;No issues found. File will not be generated.&quot;);</span>
+<span class="nc" id="L116">            return;</span>
+        }
+<span class="fc" id="L118">        HashMap&lt;Object, Object&gt; parameters = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L119">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = processIssues(issues);</span>
+<span class="fc" id="L120">        List&lt;JiraIssue&gt; jiraIssuesList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
+<span class="fc" id="L122">            jiraIssuesList.addAll(list);</span>
+<span class="fc" id="L123">        }</span>
+<span class="fc" id="L124">        parameters.put(&quot;issues&quot;, jiraIssuesList);</span>
+<span class="fc" id="L125">        parameters.put(&quot;issuesMap&quot;, jiraIssues);</span>
+<span class="fc" id="L126">        parameters.put(&quot;jiraURL&quot;, jiraURL);</span>
+<span class="fc" id="L127">        parameters.put(&quot;jiraProjectKey&quot;, jiraProjectKey);</span>
+<span class="fc" id="L128">        parameters.put(&quot;releaseVersion&quot;, releaseVersion);</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (announceParameters == null) {</span>
+            // empty Map to prevent NPE in velocity execution
+<span class="fc" id="L131">            parameters.put(&quot;announceParameters&quot;, java.util.Collections.EMPTY_MAP);</span>
+        } else {
+<span class="nc" id="L133">            parameters.put(&quot;announceParameters&quot;, announceParameters);</span>
+        }
+
+<span class="fc" id="L136">        boolean useDefault = false;</span>
+<span class="pc bpc" id="L137" title="3 of 4 branches missed.">        if (templateFile == null || !templateFile.exists()) {</span>
+<span class="fc" id="L138">            useDefault = true;</span>
+            // let's use the default one
+            // it/peng/maven/jira/releaseNotes.vm
+<span class="fc" id="L141">            InputStream defaultTemplate = this.getClass().getClassLoader().getResourceAsStream(&quot;releaseNotes.vm&quot;);</span>
+<span class="fc" id="L142">            templateFile = File.createTempFile(&quot;releaseNotes.vm&quot;, null);</span>
+<span class="fc" id="L143">            FileOutputStream fos = new FileOutputStream(templateFile);</span>
+<span class="fc" id="L144">            IOUtils.copy(defaultTemplate, fos);</span>
+<span class="fc" id="L145">            IOUtils.closeQuietly(defaultTemplate);</span>
+<span class="fc" id="L146">            IOUtils.closeQuietly(fos);</span>
+        }
+
+<span class="fc" id="L149">        String content = getEvaluator().evaluate(templateFile, parameters);</span>
+
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (useDefault) {</span>
+            // remove the temp file
+<span class="fc" id="L153">            templateFile.delete();</span>
+        }
+
+<span class="fc" id="L156">        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile, true), &quot;UTF-8&quot;);</span>
+<span class="fc" id="L157">        PrintWriter ps = new PrintWriter(writer);</span>
+
+        try {
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">            if (beforeText != null) {</span>
+<span class="fc" id="L161">                ps.println(beforeText);</span>
+            }
+<span class="fc" id="L163">            ps.println(content);</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">            if (afterText != null) {</span>
+<span class="fc" id="L165">                ps.println(afterText);</span>
+            }
+        } finally {
+<span class="pc" id="L168">            ps.flush();</span>
+<span class="pc" id="L169">            IOUtils.closeQuietly(ps);</span>
+<span class="fc" id="L170">        }</span>
+<span class="fc" id="L171">    }</span>
+
+    public void setAfterText(String afterText) {
+<span class="fc" id="L174">        this.afterText = afterText;</span>
+<span class="fc" id="L175">    }</span>
+
+    public void setBeforeText(String beforeText) {
+<span class="fc" id="L178">        this.beforeText = beforeText;</span>
+<span class="fc" id="L179">    }</span>
+
+    public void setReleaseVersion(String releaseVersion) {
+<span class="fc" id="L182">        this.releaseVersion = releaseVersion;</span>
+<span class="fc" id="L183">    }</span>
+
+    public void setJqlTemplate(String jqlTemplate) {
+<span class="nc" id="L186">        this.jqlTemplate = jqlTemplate;</span>
+<span class="nc" id="L187">    }</span>
+
+    private HashMap&lt;String, List&lt;JiraIssue&gt;&gt; processIssues(List&lt;JiraIssue&gt; issues) throws MojoFailureException {
+<span class="fc" id="L190">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L191">        jiraIssues.put(&quot;add&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc" id="L192">        jiraIssues.put(&quot;fix&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc" id="L193">        jiraIssues.put(&quot;update&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        for (JiraIssue issue : issues) {</span>
+            String issueCategory;
+<span class="fc" id="L196">            String issueType = issue.getType();</span>
+<span class="pc bpc" id="L197" title="4 of 8 branches missed.">            if (issueType.equalsIgnoreCase(&quot;new feature&quot;) || issueType.equalsIgnoreCase(&quot;task&quot;) || issueType.equalsIgnoreCase(&quot;internaltask&quot;) || issueType.equalsIgnoreCase(&quot;sub-task&quot;)) {</span>
+                // add
+<span class="nc" id="L199">                issueCategory = &quot;add&quot;;</span>
+<span class="pc bpc" id="L200" title="3 of 4 branches missed.">            } else if (issueType.equalsIgnoreCase(&quot;bug&quot;) || issueType.equalsIgnoreCase(&quot;internalbug&quot;)) {</span>
+                // fix
+<span class="fc" id="L202">                issueCategory = &quot;fix&quot;;</span>
+            } else {
+                // update
+<span class="nc" id="L205">                issueCategory = &quot;update&quot;;</span>
+            }
+<span class="fc" id="L207">            List&lt;JiraIssue&gt; currentList = jiraIssues.get(issueCategory);</span>
+<span class="fc" id="L208">            currentList.add(issue);</span>
+<span class="fc" id="L209">            jiraIssues.put(issueCategory, currentList);</span>
+<span class="fc" id="L210">        }</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
+<span class="fc" id="L212">            Collections.sort(list, new JiraIssueComparator());</span>
+<span class="fc" id="L213">        }</span>
+<span class="fc" id="L214">        return jiraIssues;</span>
+    }
+
+    private void configureIssueDownloader(IssuesDownloader issueDownloader) {
+<span class="fc" id="L218">        issueDownloader.setLog(getLog());</span>
+<span class="fc" id="L219">        issueDownloader.setMaxIssues(maxIssues);</span>
+<span class="fc" id="L220">        issueDownloader.setJiraUser(jiraUser);</span>
+<span class="fc" id="L221">        issueDownloader.setJiraPassword(jiraPassword);</span>
+<span class="fc" id="L222">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
+<span class="fc" id="L223">        issueDownloader.setReleaseVersion(releaseVersion);</span>
+<span class="fc" id="L224">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
+<span class="fc" id="L225">        issueDownloader.setClient(jiraClient);</span>
+<span class="fc" id="L226">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IssuesReportHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Maven Jira Plugin</a> &gt; <a href="index.source.html" class="el_package">com.github.lucapino.jira.helpers</a> &gt; <span class="el_source">IssuesReportHelper.java</span></div><h1>IssuesReportHelper.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013-2017 Luca Tagliani.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.lucapino.jira.helpers;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.collections.bidimap.DualHashBidiMap;
+import org.apache.maven.plugin.logging.Log;
+
+/**
+ * A helper class for generation of reports based on issues.
+ *
+ * @author Dennis Lundberg
+ * @version $Id: IssuesReportHelper.java 1384337 2012-09-13 13:53:19Z olamy $
+ * @since 2.4
+ */
+<span class="nc" id="L32">public class IssuesReportHelper {</span>
+
+    public static final int COLUMN_ASSIGNEE = 0;
+
+    public static final int COLUMN_COMPONENT = 1;
+
+    public static final int COLUMN_CREATED = 2;
+
+    public static final int COLUMN_FIX_VERSION = 3;
+
+    public static final int COLUMN_ID = 4;
+
+    public static final int COLUMN_KEY = 5;
+
+    public static final int COLUMN_PRIORITY = 6;
+
+    public static final int COLUMN_REPORTER = 7;
+
+    public static final int COLUMN_RESOLUTION = 8;
+
+    public static final int COLUMN_STATUS = 9;
+
+    public static final int COLUMN_SUMMARY = 10;
+
+    public static final int COLUMN_TYPE = 11;
+
+    public static final int COLUMN_UPDATED = 12;
+
+    /**
+     * Get a list of id:s for the columns that are to be included in the report.
+     *
+     * @param columnNames The names of the columns
+     * @param allColumns A mapping from column name to column id
+     * @return A List of column id:s
+     */
+    public static List&lt;Integer&gt; getColumnIds(String columnNames, Map&lt;String, Integer&gt; allColumns) {
+<span class="nc" id="L68">        return getColumnIds(columnNames, allColumns, null, null);</span>
+    }
+
+    /**
+     * Get a list of id:s for the columns that are to be included in the report.
+     * This method also handles deprecated column names, which will still work.
+     * If deprecated column names are used they generate a warning, indicating
+     * the replacement column name.
+     *
+     * @param columnNames The names of the columns
+     * @param allColumns A mapping from column name to column id
+     * @param deprecatedColumns A mapping from deprecated column name to column
+     * id
+     * @param log A log
+     * @return A List of column id:s
+     */
+    public static List&lt;Integer&gt; getColumnIds(String columnNames, Map&lt;String, Integer&gt; allColumns,
+            Map&lt;String, Integer&gt; deprecatedColumns, Log log) {
+<span class="nc" id="L86">        DualHashBidiMap bidiColumns = null;</span>
+<span class="nc" id="L87">        List&lt;Integer&gt; columnIds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L88">        String[] columnNamesArray = columnNames.split(&quot;,&quot;);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (deprecatedColumns != null) {</span>
+<span class="nc" id="L91">            bidiColumns = new DualHashBidiMap(allColumns);</span>
+        }
+
+        // Loop through the names of the columns, to validate each of them and add their id to the list
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        for (String columnNamesNotTrimmed : columnNamesArray) {</span>
+<span class="nc" id="L96">            String columnName = columnNamesNotTrimmed.trim();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (allColumns.containsKey(columnName)) {</span>
+<span class="nc" id="L98">                columnIds.add(allColumns.get(columnName));</span>
+<span class="nc bnc" id="L99" title="All 4 branches missed.">            } else if (deprecatedColumns != null &amp;&amp; deprecatedColumns.containsKey(columnName)) {</span>
+<span class="nc" id="L100">                Integer columnId = deprecatedColumns.get(columnName);</span>
+<span class="nc" id="L101">                columnIds.add(columnId);</span>
+<span class="nc bnc" id="L102" title="All 4 branches missed.">                if (log != null &amp;&amp; bidiColumns != null) {</span>
+<span class="nc" id="L103">                    log.warn(&quot;The columnName '&quot; + columnName + &quot;' has been deprecated.&quot; + &quot; Please use &quot;</span>
+<span class="nc" id="L104">                            + &quot;the columnName '&quot; + bidiColumns.getKey(columnId) + &quot;' instead.&quot;);</span>
+                }
+            }
+        }
+<span class="nc" id="L108">        return columnIds;</span>
+    }
+
+    /**
+     * Print a list of values separated by commas.
+     *
+     * @param values The values to print
+     * @return A nicely formatted string of values.
+     */
+    public static String printValues(List&lt;String&gt; values) {
+<span class="nc" id="L118">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (values != null) {</span>
+<span class="nc" id="L120">            Iterator&lt;String&gt; iterator = values.iterator();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            while (iterator.hasNext()) {</span>
+<span class="nc" id="L122">                String value = iterator.next();</span>
+<span class="nc" id="L123">                sb.append(value);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                if (iterator.hasNext()) {</span>
+<span class="nc" id="L125">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L127">            }</span>
+        }
+<span class="nc" id="L129">        return sb.toString();</span>
+    }
+
+    /**
+     * Convert a List of Integers to an int array.
+     *
+     * @param list The List to convert
+     * @return An in array
+     */
+    public static int[] toIntArray(List&lt;Integer&gt; list) {
+<span class="nc" id="L139">        int[] intArray = new int[list.size()];</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        for (int j = 0; j &lt; intArray.length; j++) {</span>
+<span class="nc" id="L141">            intArray[j] = (list.get(j));</span>
+        }
+<span class="nc" id="L143">        return intArray;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

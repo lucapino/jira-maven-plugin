@@ -77,7 +77,7 @@
     <!-- IE Compatibility tag -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Maven Jira Plugin</title>
+    <title>Maven Jira Plugin &#x2013; Plugin Documentation</title>
     <link href="./favicon.ico" rel="shortcut icon" type="image/x-icon" />
 
     <!-- Metadata -->
@@ -87,8 +87,8 @@
 
     <!-- Facebook Open Graph -->
     <meta property="og:type" content="website"/>
-    <meta property="og:site" content="Maven Jira Plugin &#x2013; About"/>
-    <meta property="og:title" content="Maven Jira Plugin &#x2013; About"/>
+    <meta property="og:site" content="Maven Jira Plugin &#x2013; Plugin Documentation"/>
+    <meta property="og:title" content="Maven Jira Plugin &#x2013; Plugin Documentation"/>
     <meta property="og:description" content="Documentation for the Maven Jira Plugin"/>
 
 
@@ -151,8 +151,116 @@
 </header>
 <section id="main-section" class="container">
 <section> 
- <h2 id="aboutmavenjiraplugin">About Maven Jira Plugin</h2> 
- <p>Maven plugin for accessing Atlassian Jira</p>
+ <h2 id="plugindocumentation">Plugin Documentation</h2> 
+ <p>Goals available for this plugin:</p> 
+ <table class="table table-striped table-bordered">
+  <thead>
+   <tr> 
+    <th>Goal</th> 
+    <th>Report?</th> 
+    <th>Description</th>
+   </tr>
+  </thead> 
+  <tbody> 
+   <tr> 
+    <td><a href="create-new-jira-version-mojo.html">jira:create-new-jira-version</a></td> 
+    <td>No</td> 
+    <td>Goal that creates a version in a JIRA project.</td>
+   </tr> 
+   <tr> 
+    <td><a href="generate-release-notes-mojo.html">jira:generate-release-notes</a></td> 
+    <td>No</td> 
+    <td>Goal that generates release notes based on a version in a JIRA project.</td>
+   </tr> 
+   <tr> 
+    <td><a href="jira-report-mojo.html">jira:jira-report</a></td> 
+    <td>Yes</td> 
+    <td>Creates a report of a JIRA version.</td>
+   </tr> 
+   <tr> 
+    <td><a href="mail-release-notes-mojo.html">jira:mail-release-notes</a></td> 
+    <td>No</td> 
+    <td>Goal that generates release notes based on a version in a JIRA project.</td>
+   </tr> 
+   <tr> 
+    <td><a href="release-jira-version-mojo.html">jira:release-jira-version</a></td> 
+    <td>No</td> 
+    <td>Goal that creates a version in a JIRA project.</td>
+   </tr> 
+   <tr> 
+    <td><a href="transition-issues-mojo.html">jira:transition-issues</a></td> 
+    <td>No</td> 
+    <td>Goal that made a transition on the given issues.</td>
+   </tr>
+  </tbody>
+ </table> 
+ <section> 
+  <h3 id="systemrequirements">System Requirements</h3> 
+  <p>The following specifies the minimum requirements to run this Maven plugin:</p> 
+  <table class="table table-striped table-bordered"> 
+   <tbody>
+    <tr> 
+     <td>Maven</td> 
+     <td>3.5</td>
+    </tr> 
+    <tr> 
+     <td>JDK</td> 
+     <td>1.7</td>
+    </tr> 
+    <tr> 
+     <td>Memory</td> 
+     <td>No minimum requirement.</td>
+    </tr> 
+    <tr> 
+     <td>Disk Space</td> 
+     <td>No minimum requirement.</td>
+    </tr>
+   </tbody>
+  </table>
+ </section> 
+ <section> 
+  <h3 id="usage">Usage</h3> 
+  <p>You should specify the version in your project's plugin configuration:</p> 
+  <pre><code>&lt;project&gt;
+  ...
+  &lt;build&gt;
+    &lt;!-- To define the plugin version in your parent POM --&gt;
+    &lt;pluginManagement&gt;
+      &lt;plugins&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;com.github.lucapino&lt;/groupId&gt;
+          &lt;artifactId&gt;jira-maven-plugin&lt;/artifactId&gt;
+          &lt;version&gt;2.0.0&lt;/version&gt;
+        &lt;/plugin&gt;
+        ...
+      &lt;/plugins&gt;
+    &lt;/pluginManagement&gt;
+    &lt;!-- To use the plugin goals in your POM or parent POM --&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;com.github.lucapino&lt;/groupId&gt;
+        &lt;artifactId&gt;jira-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.0.0&lt;/version&gt;
+      &lt;/plugin&gt;
+      ...
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+  ...
+  &lt;!-- To use the report goals in your POM or parent POM --&gt;
+  &lt;reporting&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;com.github.lucapino&lt;/groupId&gt;
+        &lt;artifactId&gt;jira-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;2.0.0&lt;/version&gt;
+      &lt;/plugin&gt;
+      ...
+    &lt;/plugins&gt;
+  &lt;/reporting&gt;
+  ...
+&lt;/project&gt;</code></pre> 
+  <p>For more information, see <a href="http://maven.apache.org/guides/mini/guide-configuring-plugins.html">"Guide to Configuring Plug-ins"</a></p>
+ </section>
 </section>
     <p class="pull-right internal-link"><a href="#main-section">Back to top</a></p>
 </section>
