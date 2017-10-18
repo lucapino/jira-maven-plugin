@@ -37,8 +37,8 @@ limitations under the License.
         <connection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:lucapino/jira-maven-plugin.git</developerConnection>
         <url>https://github.com/lucapino/jira-maven-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     
     <ciManagement>
         <system>Travis</system>
@@ -55,6 +55,8 @@ limitations under the License.
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <site.skin.version>1.0.0</site.skin.version>
         <mavenURL>https://maven-badges.herokuapp.com/maven-central/com.github.lucapino/jira-maven-plugin</mavenURL>
+        <siteMainDirectory>${user.home}</siteMainDirectory>
+        <scmPubCheckoutDirectory>\${siteMainDirectory}/jira-mave-plugin-content-scm</scmPubCheckoutDirectory>
     </properties>
 
     <licenses>
@@ -82,6 +84,8 @@ limitations under the License.
                         <artifactId>maven-scm-publish-plugin</artifactId>
                         <version>1.1</version>
                         <configuration>
+                            <tryUpdate>true</tryUpdate>
+                            <checkoutDirectory>${scmPubCheckoutDirectory}</checkoutDirectory>
                             <pubScmUrl>${project.scm.connection}</pubScmUrl>
                             <scmBranch>gh-pages</scmBranch>
                             <content>${project.reporting.outputDirectory}</content><!-- mono-module doesn't require site:stage -->
@@ -217,6 +221,11 @@ limitations under the License.
                             <version>${site.skin.version}</version>
                         </dependency>
                     </dependencies>
+                    <configuration>
+                        <!-- site deploy is performed by scm-publish plugin -->
+                        <skipDeploy>true</skipDeploy>
+                        <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -249,7 +258,7 @@ limitations under the License.
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>false</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
-                    <goals>deploy</goals>
+                    <goals>site-deploy</goals>
                 </configuration>
             </plugin>
             <plugin>
@@ -352,6 +361,17 @@ limitations under the License.
                 <configuration>
                     <onlyMilestoneIssues>false</onlyMilestoneIssues>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc-no-fork</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
         </plugins>
     </reporting>
@@ -474,11 +494,6 @@ limitations under the License.
             <version>6.11</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-changes-plugin</artifactId>
-            <version>2.12.1</version>
-        </dependency>
     </dependencies>
     <repositories>
         <repository>
@@ -490,6 +505,10 @@ limitations under the License.
         </repository>
     </repositories>
     <distributionManagement>
+        <site>
+            <id>github</id>
+            <url>${project.scm.connection}</url>
+        </site>
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
