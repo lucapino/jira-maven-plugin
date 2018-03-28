@@ -258,7 +258,7 @@ limitations under the License.
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>false</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
-                    <goals>site-deploy</goals>
+                    <goals>deploy site-deploy</goals>
                 </configuration>
             </plugin>
             <plugin>
