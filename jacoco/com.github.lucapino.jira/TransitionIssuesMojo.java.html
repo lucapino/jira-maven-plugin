@@ -61,55 +61,60 @@ import org.apache.maven.plugins.annotations.Parameter;
     @Override
     public void doExecute() throws Exception {
 <span class="nc" id="L63">        Log log = getLog();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (transition == null) {</span>
-<span class="nc" id="L65">            log.info(&quot;Transition not specified. Nothing to do&quot;);</span>
+        // Run only at the execution root
+<span class="nc bnc" id="L65" title="All 4 branches missed.">        if (runOnlyAtExecutionRoot &amp;&amp; !isThisTheExecutionRoot()) {</span>
+<span class="nc" id="L66">            log.info(&quot;Skipping the announcement mail in this project because it's not the Execution Root&quot;);</span>
+        } else {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (transition == null) {</span>
+<span class="nc" id="L69">                log.info(&quot;Transition not specified. Nothing to do&quot;);</span>
+            }
+<span class="nc" id="L71">            IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
+<span class="nc" id="L72">            configureIssueDownloader(issuesDownloader);</span>
+<span class="nc" id="L73">            List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
+<span class="nc" id="L74">            transitionIssues(issues, transition);</span>
         }
-<span class="nc" id="L67">        IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
-<span class="nc" id="L68">        configureIssueDownloader(issuesDownloader);</span>
-<span class="nc" id="L69">        List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
-<span class="nc" id="L70">        transitionIssues(issues, transition);</span>
-<span class="nc" id="L71">    }</span>
+<span class="nc" id="L76">    }</span>
 
     public void setReleaseVersion(String releaseVersion) {
-<span class="nc" id="L74">        this.releaseVersion = releaseVersion;</span>
-<span class="nc" id="L75">    }</span>
+<span class="nc" id="L79">        this.releaseVersion = releaseVersion;</span>
+<span class="nc" id="L80">    }</span>
 
     public void setJqlTemplate(String jqlTemplate) {
-<span class="nc" id="L78">        this.jqlTemplate = jqlTemplate;</span>
-<span class="nc" id="L79">    }</span>
+<span class="nc" id="L83">        this.jqlTemplate = jqlTemplate;</span>
+<span class="nc" id="L84">    }</span>
 
     private void transitionIssues(List&lt;JiraIssue&gt; issues, String transition) throws RemoteException, MojoFailureException {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">        for (JiraIssue issue : issues) {</span>
-<span class="nc" id="L83">            Issue remoteIssue = issue.getRemoteIssue();</span>
-<span class="nc" id="L84">            Iterable&lt;Transition&gt; transitions = jiraClient.getRestClient().getIssueClient().getTransitions(remoteIssue).claim();</span>
-<span class="nc bnc" id="L85" title="All 4 branches missed.">            if (transitions == null || !transitions.iterator().hasNext()) {</span>
-<span class="nc" id="L86">                getLog().warn(&quot;No transitions found for issue &quot; + issue.getKey());</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (JiraIssue issue : issues) {</span>
+<span class="nc" id="L88">            Issue remoteIssue = issue.getRemoteIssue();</span>
+<span class="nc" id="L89">            Iterable&lt;Transition&gt; transitions = jiraClient.getRestClient().getIssueClient().getTransitions(remoteIssue).claim();</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">            if (transitions == null || !transitions.iterator().hasNext()) {</span>
+<span class="nc" id="L91">                getLog().warn(&quot;No transitions found for issue &quot; + issue.getKey());</span>
             } else {
-<span class="nc" id="L88">                boolean found = false;</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">                for (Transition remoteTransition : transitions) {</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">                    if (remoteTransition.getName().equals(transition)) {</span>
-<span class="nc" id="L91">                        TransitionInput transitionToTake = new TransitionInput(remoteTransition.getId());</span>
-<span class="nc" id="L92">                        jiraClient.getRestClient().getIssueClient().transition(remoteIssue, transitionToTake).claim();</span>
-<span class="nc" id="L93">                        found = true;</span>
-<span class="nc" id="L94">                        break;</span>
+<span class="nc" id="L93">                boolean found = false;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                for (Transition remoteTransition : transitions) {</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    if (remoteTransition.getName().equals(transition)) {</span>
+<span class="nc" id="L96">                        TransitionInput transitionToTake = new TransitionInput(remoteTransition.getId());</span>
+<span class="nc" id="L97">                        jiraClient.getRestClient().getIssueClient().transition(remoteIssue, transitionToTake).claim();</span>
+<span class="nc" id="L98">                        found = true;</span>
+<span class="nc" id="L99">                        break;</span>
                     }
-<span class="nc" id="L96">                }</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">                if (!found) {</span>
-<span class="nc" id="L98">                    getLog().warn(&quot;No transition with name '&quot; + transition + &quot;' found for issue &quot; + issue.getKey());</span>
+<span class="nc" id="L101">                }</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                if (!found) {</span>
+<span class="nc" id="L103">                    getLog().warn(&quot;No transition with name '&quot; + transition + &quot;' found for issue &quot; + issue.getKey());</span>
                 }
             }
-<span class="nc" id="L101">        }</span>
-<span class="nc" id="L102">    }</span>
+<span class="nc" id="L106">        }</span>
+<span class="nc" id="L107">    }</span>
 
     private void configureIssueDownloader(IssuesDownloader issueDownloader) {
-<span class="nc" id="L105">        issueDownloader.setLog(getLog());</span>
-<span class="nc" id="L106">        issueDownloader.setMaxIssues(maxIssues);</span>
-<span class="nc" id="L107">        issueDownloader.setJiraUser(jiraUser);</span>
-<span class="nc" id="L108">        issueDownloader.setJiraPassword(jiraPassword);</span>
-<span class="nc" id="L109">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
-<span class="nc" id="L110">        issueDownloader.setReleaseVersion(releaseVersion);</span>
-<span class="nc" id="L111">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
-<span class="nc" id="L112">        issueDownloader.setClient(jiraClient);</span>
-<span class="nc" id="L113">    }</span>
+<span class="nc" id="L110">        issueDownloader.setLog(getLog());</span>
+<span class="nc" id="L111">        issueDownloader.setMaxIssues(maxIssues);</span>
+<span class="nc" id="L112">        issueDownloader.setJiraUser(jiraUser);</span>
+<span class="nc" id="L113">        issueDownloader.setJiraPassword(jiraPassword);</span>
+<span class="nc" id="L114">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
+<span class="nc" id="L115">        issueDownloader.setReleaseVersion(releaseVersion);</span>
+<span class="nc" id="L116">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
+<span class="nc" id="L117">        issueDownloader.setClient(jiraClient);</span>
+<span class="nc" id="L118">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

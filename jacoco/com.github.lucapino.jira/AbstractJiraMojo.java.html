@@ -19,6 +19,7 @@ package com.github.lucapino.jira;
 
 import com.github.lucapino.jira.helpers.JiraClient;
 import com.github.lucapino.jira.helpers.TemplateEvaluator;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -34,7 +35,18 @@ import org.apache.maven.settings.Settings;
  * @author george
  *
  */
-<span class="fc" id="L37">public abstract class AbstractJiraMojo extends AbstractMojo {</span>
+<span class="fc" id="L38">public abstract class AbstractJiraMojo extends AbstractMojo {</span>
+
+    /**
+     * The current project base directory.
+     */
+    @Parameter(property = &quot;basedir&quot;, required = true)
+    protected String basedir;
+    /**
+     * The Maven Session.
+     */
+    @Parameter(defaultValue = &quot;${session}&quot;, readonly = true, required = true)
+    protected MavenSession mavenSession;
 
     @Parameter(defaultValue = &quot;${settings}&quot;, readonly = true, required = true)
     private Settings settings;
@@ -47,7 +59,7 @@ import org.apache.maven.settings.Settings;
      * JIRA Installation URL. If not informed, it will use the
      * project.issueManagement.jiraURL info.
      */
-    @Parameter(name = &quot;jira.url&quot;, defaultValue = &quot;${project.issueManagement.url}&quot;, required = true)
+    @Parameter(defaultValue = &quot;${project.issueManagement.url}&quot;, required = true)
     protected String jiraURL;
     /**
      * JIRA Authentication User.
@@ -75,100 +87,131 @@ import org.apache.maven.settings.Settings;
      */
     @Parameter
     protected boolean skip;
+    /**
+     * This will cause the execution to be run only at the top of a given module
+     * tree. That is, run in the project contained in the same folder where the
+     * mvn execution was launched.
+     */
+    @Parameter(defaultValue = &quot;false&quot;)
+    protected boolean runOnlyAtExecutionRoot;
 
     private TemplateEvaluator evaluator;
     protected JiraClient jiraClient;
 
     private void initJiraClient() throws MojoFailureException {
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (jiraClient == null) {</span>
-<span class="fc" id="L84">            loadUserCredentials();</span>
-<span class="fc" id="L85">            getLog().debug(&quot;Connecting to JIRA server&quot;);</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (jiraClient == null) {</span>
+<span class="fc" id="L103">            loadUserCredentials();</span>
+<span class="fc" id="L104">            getLog().debug(&quot;Connecting to JIRA server&quot;);</span>
             try {
-<span class="fc" id="L87">                jiraClient = new JiraClient(jiraUser, jiraPassword, jiraURL);</span>
-<span class="fc" id="L88">                getLog().info(&quot;Successfuly connected to JIRA server&quot;);</span>
-<span class="nc" id="L89">            } catch (Exception e) {</span>
-<span class="nc" id="L90">                throw fail(&quot;Unable to connect to JIRA server&quot;, e);</span>
-<span class="fc" id="L91">            }</span>
+<span class="fc" id="L106">                jiraClient = new JiraClient(jiraUser, jiraPassword, jiraURL);</span>
+<span class="fc" id="L107">                getLog().info(&quot;Successfuly connected to JIRA server&quot;);</span>
+<span class="nc" id="L108">            } catch (Exception e) {</span>
+<span class="nc" id="L109">                throw fail(&quot;Unable to connect to JIRA server&quot;, e);</span>
+<span class="fc" id="L110">            }</span>
         }
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L112">    }</span>
 
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
-<span class="fc" id="L97">        Log log = getLog();</span>
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (isSkip()) {</span>
-<span class="nc" id="L99">            log.info(&quot;Skipping Plugin execution.&quot;);</span>
-<span class="nc" id="L100">            return;</span>
+<span class="fc" id="L116">        Log log = getLog();</span>
+        // Run only at the execution root
+<span class="pc bpc" id="L118" title="3 of 4 branches missed.">        if (runOnlyAtExecutionRoot &amp;&amp; !isThisTheExecutionRoot()) {</span>
+<span class="nc" id="L119">            getLog().info(&quot;Skipping the announcement mail in this project because it's not the Execution Root&quot;);</span>
+        } else {
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">            if (isSkip()) {</span>
+<span class="nc" id="L122">                log.info(&quot;Skipping Plugin execution.&quot;);</span>
+<span class="nc" id="L123">                return;</span>
+            }
+            try {
+<span class="fc" id="L126">                initJiraClient();</span>
+<span class="fc" id="L127">                doExecute();</span>
+<span class="fc" id="L128">                jiraClient.getRestClient().close();</span>
+<span class="nc" id="L129">            } catch (Exception e) {</span>
+<span class="nc" id="L130">                log.error(&quot;Error when executing mojo&quot;, e);</span>
+                // XXX: Por enquanto nao faz nada.
+<span class="fc" id="L132">            }</span>
         }
-        try {
-<span class="fc" id="L103">            initJiraClient();</span>
-<span class="fc" id="L104">            doExecute();</span>
-<span class="fc" id="L105">            jiraClient.getRestClient().close();</span>
-<span class="nc" id="L106">        } catch (Exception e) {</span>
-<span class="nc" id="L107">            log.error(&quot;Error when executing mojo&quot;, e);</span>
-            // XXX: Por enquanto nao faz nada.
-<span class="fc" id="L109">        }</span>
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L134">    }</span>
 
     public TemplateEvaluator getEvaluator() {
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (evaluator == null) {</span>
-<span class="fc" id="L114">            getLog().debug(&quot;Initializing Template Helper...&quot;);</span>
-<span class="fc" id="L115">            evaluator = new TemplateEvaluator(project);</span>
-<span class="fc" id="L116">            getLog().debug(&quot;Template Helper initialized&quot;);</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (evaluator == null) {</span>
+<span class="fc" id="L138">            getLog().debug(&quot;Initializing Template Helper...&quot;);</span>
+<span class="fc" id="L139">            evaluator = new TemplateEvaluator(project);</span>
+<span class="fc" id="L140">            getLog().debug(&quot;Template Helper initialized&quot;);</span>
         }
-<span class="fc" id="L118">        return evaluator;</span>
+<span class="fc" id="L142">        return evaluator;</span>
     }
 
     public abstract void doExecute() throws Exception;
 
     public boolean isSkip() {
-<span class="fc" id="L124">        return skip;</span>
+<span class="fc" id="L148">        return skip;</span>
     }
 
     public void setJiraProjectKey(String jiraProjectKey) {
-<span class="fc" id="L128">        this.jiraProjectKey = jiraProjectKey;</span>
-<span class="fc" id="L129">    }</span>
+<span class="fc" id="L152">        this.jiraProjectKey = jiraProjectKey;</span>
+<span class="fc" id="L153">    }</span>
 
     public void setJiraPassword(String jiraPassword) {
-<span class="nc" id="L132">        this.jiraPassword = jiraPassword;</span>
-<span class="nc" id="L133">    }</span>
+<span class="nc" id="L156">        this.jiraPassword = jiraPassword;</span>
+<span class="nc" id="L157">    }</span>
 
     public void setJiraURL(String jiraURL) {
-<span class="fc" id="L136">        this.jiraURL = jiraURL;</span>
-<span class="fc" id="L137">    }</span>
+<span class="fc" id="L160">        this.jiraURL = jiraURL;</span>
+<span class="fc" id="L161">    }</span>
 
     public void setJiraUser(String jiraUser) {
-<span class="nc" id="L140">        this.jiraUser = jiraUser;</span>
-<span class="nc" id="L141">    }</span>
+<span class="nc" id="L164">        this.jiraUser = jiraUser;</span>
+<span class="nc" id="L165">    }</span>
 
     public void setSettings(Settings settings) {
-<span class="nc" id="L144">        this.settings = settings;</span>
-<span class="nc" id="L145">    }</span>
+<span class="nc" id="L168">        this.settings = settings;</span>
+<span class="nc" id="L169">    }</span>
 
     public void setServerId(String serverId) {
-<span class="nc" id="L148">        this.serverId = serverId;</span>
-<span class="nc" id="L149">    }</span>
+<span class="nc" id="L172">        this.serverId = serverId;</span>
+<span class="nc" id="L173">    }</span>
 
     protected MojoFailureException fail(String message, Exception e) {
-<span class="nc" id="L152">        getLog().error(message, e);</span>
-<span class="nc" id="L153">        return new MojoFailureException(e, message, e.getMessage());</span>
+<span class="nc" id="L176">        getLog().error(message, e);</span>
+<span class="nc" id="L177">        return new MojoFailureException(e, message, e.getMessage());</span>
     }
 
     private void loadUserCredentials() {
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (serverId == null) {</span>
-<span class="fc" id="L158">            serverId = jiraURL;</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        if (serverId == null) {</span>
+<span class="fc" id="L182">            serverId = jiraURL;</span>
         }
         // read credentials from settings.xml if user has not set them in configuration
-<span class="pc bpc" id="L161" title="4 of 6 branches missed.">        if ((jiraUser == null || jiraPassword == null) &amp;&amp; this.settings != null) {</span>
-<span class="nc" id="L162">            Server server = settings.getServer(serverId);</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (server != null) {</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">                if (jiraUser == null) {</span>
-<span class="nc" id="L165">                    jiraUser = server.getUsername();</span>
+<span class="pc bpc" id="L185" title="4 of 6 branches missed.">        if ((jiraUser == null || jiraPassword == null) &amp;&amp; this.settings != null) {</span>
+<span class="nc" id="L186">            Server server = settings.getServer(serverId);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (server != null) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">                if (jiraUser == null) {</span>
+<span class="nc" id="L189">                    jiraUser = server.getUsername();</span>
                 }
-<span class="nc bnc" id="L167" title="All 2 branches missed.">                if (jiraPassword == null) {</span>
-<span class="nc" id="L168">                    jiraPassword = server.getPassword();</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                if (jiraPassword == null) {</span>
+<span class="nc" id="L192">                    jiraPassword = server.getPassword();</span>
                 }
             }
         }
-<span class="fc" id="L172">    }</span>
+<span class="fc" id="L196">    }</span>
+
+    /**
+     * Returns &lt;code&gt;true&lt;/code&gt; if the current project is located at the
+     * Execution Root Directory (where mvn was
+     * launched).
+     *
+     * @return &lt;code&gt;true&lt;/code&gt; if the current project is at the Execution Root
+     */
+    protected boolean isThisTheExecutionRoot() {
+<span class="nc" id="L206">        getLog().debug(&quot;Root Folder:&quot; + mavenSession.getExecutionRootDirectory());</span>
+<span class="nc" id="L207">        getLog().debug(&quot;Current Folder:&quot; + basedir);</span>
+<span class="nc" id="L208">        boolean result = mavenSession.getExecutionRootDirectory().equalsIgnoreCase(basedir);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (result) {</span>
+<span class="nc" id="L210">            getLog().debug(&quot;This is the execution root.&quot;);</span>
+        } else {
+<span class="nc" id="L212">            getLog().debug(&quot;This is NOT the execution root.&quot;);</span>
+        }
+<span class="nc" id="L214">        return result;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

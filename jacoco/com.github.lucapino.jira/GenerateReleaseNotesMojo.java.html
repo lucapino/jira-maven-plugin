@@ -34,7 +34,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -44,20 +43,20 @@ import org.apache.maven.plugins.annotations.Parameter;
  * @author George Gastaldi
  */
 @Mojo(name = &quot;generate-release-notes&quot;)
-@Execute(goal = &quot;generate-release-notes&quot;, phase = LifecyclePhase.DEPLOY)
-<span class="fc" id="L48">public class GenerateReleaseNotesMojo extends AbstractJiraMojo {</span>
+@Execute(goal = &quot;generate-release-notes&quot;)
+<span class="fc" id="L47">public class GenerateReleaseNotesMojo extends AbstractJiraMojo {</span>
 
     /**
      * JQL Template to generate release notes. Parameter 0 = Project Key
      * Parameter 1 = Fix version
      */
-<span class="fc" id="L54">    @Parameter(name = &quot;jqlTemplate&quot;, defaultValue = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;,</span>
+<span class="fc" id="L53">    @Parameter(name = &quot;jqlTemplate&quot;, defaultValue = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;,</span>
             required = true)
     String jqlTemplate = &quot;project = ''{0}'' AND status in (Resolved, Closed) AND fixVersion = ''{1}''&quot;;
     /**
      * Max number of issues to return
      */
-<span class="fc" id="L60">    @Parameter(name = &quot;maxIssues&quot;, defaultValue = &quot;100&quot;)</span>
+<span class="fc" id="L59">    @Parameter(name = &quot;maxIssues&quot;, defaultValue = &quot;100&quot;)</span>
     int maxIssues = 100;
     /**
      * Released Version
@@ -93,11 +92,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 
     @Override
     public void doExecute() throws Exception {
-<span class="fc" id="L96">        IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
-<span class="fc" id="L97">        configureIssueDownloader(issuesDownloader);</span>
-<span class="fc" id="L98">        List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
-<span class="fc" id="L99">        output(issues);</span>
-<span class="fc" id="L100">    }</span>
+        // Run only at the execution root
+<span class="pc bpc" id="L96" title="3 of 4 branches missed.">        if (runOnlyAtExecutionRoot &amp;&amp; !isThisTheExecutionRoot()) {</span>
+<span class="nc" id="L97">            getLog().info(&quot;Skipping the announcement mail in this project because it's not the Execution Root&quot;);</span>
+        } else {
+<span class="fc" id="L99">            IssuesDownloader issuesDownloader = new IssuesDownloader();</span>
+<span class="fc" id="L100">            configureIssueDownloader(issuesDownloader);</span>
+<span class="fc" id="L101">            List&lt;JiraIssue&gt; issues = issuesDownloader.getIssueList();</span>
+<span class="fc" id="L102">            output(issues);</span>
+        }
+<span class="fc" id="L104">    }</span>
 
     /**
      * Writes issues to output
@@ -106,123 +110,123 @@ import org.apache.maven.plugins.annotations.Parameter;
      */
     void output(List&lt;JiraIssue&gt; issues) throws IOException, MojoFailureException {
 
-<span class="fc" id="L109">        Log log = getLog();</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (targetFile == null) {</span>
-<span class="nc" id="L111">            log.warn(&quot;No targetFile specified. Ignoring&quot;);</span>
-<span class="nc" id="L112">            return;</span>
-        }
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (issues == null) {</span>
-<span class="nc" id="L115">            log.warn(&quot;No issues found. File will not be generated.&quot;);</span>
+<span class="fc" id="L113">        Log log = getLog();</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (targetFile == null) {</span>
+<span class="nc" id="L115">            log.warn(&quot;No targetFile specified. Ignoring&quot;);</span>
 <span class="nc" id="L116">            return;</span>
         }
-<span class="fc" id="L118">        HashMap&lt;Object, Object&gt; parameters = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L119">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = processIssues(issues);</span>
-<span class="fc" id="L120">        List&lt;JiraIssue&gt; jiraIssuesList = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
-<span class="fc" id="L122">            jiraIssuesList.addAll(list);</span>
-<span class="fc" id="L123">        }</span>
-<span class="fc" id="L124">        parameters.put(&quot;issues&quot;, jiraIssuesList);</span>
-<span class="fc" id="L125">        parameters.put(&quot;issuesMap&quot;, jiraIssues);</span>
-<span class="fc" id="L126">        parameters.put(&quot;jiraURL&quot;, jiraURL);</span>
-<span class="fc" id="L127">        parameters.put(&quot;jiraProjectKey&quot;, jiraProjectKey);</span>
-<span class="fc" id="L128">        parameters.put(&quot;releaseVersion&quot;, releaseVersion);</span>
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (announceParameters == null) {</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (issues == null) {</span>
+<span class="nc" id="L119">            log.warn(&quot;No issues found. File will not be generated.&quot;);</span>
+<span class="nc" id="L120">            return;</span>
+        }
+<span class="fc" id="L122">        HashMap&lt;Object, Object&gt; parameters = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L123">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = processIssues(issues);</span>
+<span class="fc" id="L124">        List&lt;JiraIssue&gt; jiraIssuesList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
+<span class="fc" id="L126">            jiraIssuesList.addAll(list);</span>
+<span class="fc" id="L127">        }</span>
+<span class="fc" id="L128">        parameters.put(&quot;issues&quot;, jiraIssuesList);</span>
+<span class="fc" id="L129">        parameters.put(&quot;issuesMap&quot;, jiraIssues);</span>
+<span class="fc" id="L130">        parameters.put(&quot;jiraURL&quot;, jiraURL);</span>
+<span class="fc" id="L131">        parameters.put(&quot;jiraProjectKey&quot;, jiraProjectKey);</span>
+<span class="fc" id="L132">        parameters.put(&quot;releaseVersion&quot;, releaseVersion);</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (announceParameters == null) {</span>
             // empty Map to prevent NPE in velocity execution
-<span class="fc" id="L131">            parameters.put(&quot;announceParameters&quot;, java.util.Collections.EMPTY_MAP);</span>
+<span class="fc" id="L135">            parameters.put(&quot;announceParameters&quot;, java.util.Collections.EMPTY_MAP);</span>
         } else {
-<span class="nc" id="L133">            parameters.put(&quot;announceParameters&quot;, announceParameters);</span>
+<span class="nc" id="L137">            parameters.put(&quot;announceParameters&quot;, announceParameters);</span>
         }
 
-<span class="fc" id="L136">        boolean useDefault = false;</span>
-<span class="pc bpc" id="L137" title="3 of 4 branches missed.">        if (templateFile == null || !templateFile.exists()) {</span>
-<span class="fc" id="L138">            useDefault = true;</span>
+<span class="fc" id="L140">        boolean useDefault = false;</span>
+<span class="pc bpc" id="L141" title="3 of 4 branches missed.">        if (templateFile == null || !templateFile.exists()) {</span>
+<span class="fc" id="L142">            useDefault = true;</span>
             // let's use the default one
             // it/peng/maven/jira/releaseNotes.vm
-<span class="fc" id="L141">            InputStream defaultTemplate = this.getClass().getClassLoader().getResourceAsStream(&quot;releaseNotes.vm&quot;);</span>
-<span class="fc" id="L142">            templateFile = File.createTempFile(&quot;releaseNotes.vm&quot;, null);</span>
-<span class="fc" id="L143">            FileOutputStream fos = new FileOutputStream(templateFile);</span>
-<span class="fc" id="L144">            IOUtils.copy(defaultTemplate, fos);</span>
-<span class="fc" id="L145">            IOUtils.closeQuietly(defaultTemplate);</span>
-<span class="fc" id="L146">            IOUtils.closeQuietly(fos);</span>
+<span class="fc" id="L145">            InputStream defaultTemplate = this.getClass().getClassLoader().getResourceAsStream(&quot;releaseNotes.vm&quot;);</span>
+<span class="fc" id="L146">            templateFile = File.createTempFile(&quot;releaseNotes.vm&quot;, null);</span>
+<span class="fc" id="L147">            FileOutputStream fos = new FileOutputStream(templateFile);</span>
+<span class="fc" id="L148">            IOUtils.copy(defaultTemplate, fos);</span>
+<span class="fc" id="L149">            IOUtils.closeQuietly(defaultTemplate);</span>
+<span class="fc" id="L150">            IOUtils.closeQuietly(fos);</span>
         }
 
-<span class="fc" id="L149">        String content = getEvaluator().evaluate(templateFile, parameters);</span>
+<span class="fc" id="L153">        String content = getEvaluator().evaluate(templateFile, parameters);</span>
 
-<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (useDefault) {</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if (useDefault) {</span>
             // remove the temp file
-<span class="fc" id="L153">            templateFile.delete();</span>
+<span class="fc" id="L157">            templateFile.delete();</span>
         }
 
-<span class="fc" id="L156">        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile, true), &quot;UTF-8&quot;);</span>
-<span class="fc" id="L157">        PrintWriter ps = new PrintWriter(writer);</span>
+<span class="fc" id="L160">        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile, true), &quot;UTF-8&quot;);</span>
+<span class="fc" id="L161">        PrintWriter ps = new PrintWriter(writer);</span>
 
         try {
-<span class="pc bpc" id="L160" title="1 of 2 branches missed.">            if (beforeText != null) {</span>
-<span class="fc" id="L161">                ps.println(beforeText);</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">            if (beforeText != null) {</span>
+<span class="fc" id="L165">                ps.println(beforeText);</span>
             }
-<span class="fc" id="L163">            ps.println(content);</span>
-<span class="pc bpc" id="L164" title="1 of 2 branches missed.">            if (afterText != null) {</span>
-<span class="fc" id="L165">                ps.println(afterText);</span>
+<span class="fc" id="L167">            ps.println(content);</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">            if (afterText != null) {</span>
+<span class="fc" id="L169">                ps.println(afterText);</span>
             }
         } finally {
-<span class="pc" id="L168">            ps.flush();</span>
-<span class="pc" id="L169">            IOUtils.closeQuietly(ps);</span>
-<span class="fc" id="L170">        }</span>
-<span class="fc" id="L171">    }</span>
-
-    public void setAfterText(String afterText) {
-<span class="fc" id="L174">        this.afterText = afterText;</span>
+<span class="pc" id="L172">            ps.flush();</span>
+<span class="pc" id="L173">            IOUtils.closeQuietly(ps);</span>
+<span class="pc" id="L174">        }</span>
 <span class="fc" id="L175">    }</span>
 
-    public void setBeforeText(String beforeText) {
-<span class="fc" id="L178">        this.beforeText = beforeText;</span>
+    public void setAfterText(String afterText) {
+<span class="fc" id="L178">        this.afterText = afterText;</span>
 <span class="fc" id="L179">    }</span>
 
-    public void setReleaseVersion(String releaseVersion) {
-<span class="fc" id="L182">        this.releaseVersion = releaseVersion;</span>
+    public void setBeforeText(String beforeText) {
+<span class="fc" id="L182">        this.beforeText = beforeText;</span>
 <span class="fc" id="L183">    }</span>
 
+    public void setReleaseVersion(String releaseVersion) {
+<span class="fc" id="L186">        this.releaseVersion = releaseVersion;</span>
+<span class="fc" id="L187">    }</span>
+
     public void setJqlTemplate(String jqlTemplate) {
-<span class="nc" id="L186">        this.jqlTemplate = jqlTemplate;</span>
-<span class="nc" id="L187">    }</span>
+<span class="nc" id="L190">        this.jqlTemplate = jqlTemplate;</span>
+<span class="nc" id="L191">    }</span>
 
     private HashMap&lt;String, List&lt;JiraIssue&gt;&gt; processIssues(List&lt;JiraIssue&gt; issues) throws MojoFailureException {
-<span class="fc" id="L190">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L191">        jiraIssues.put(&quot;add&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
-<span class="fc" id="L192">        jiraIssues.put(&quot;fix&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
-<span class="fc" id="L193">        jiraIssues.put(&quot;update&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">        for (JiraIssue issue : issues) {</span>
+<span class="fc" id="L194">        HashMap&lt;String, List&lt;JiraIssue&gt;&gt; jiraIssues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L195">        jiraIssues.put(&quot;add&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc" id="L196">        jiraIssues.put(&quot;fix&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc" id="L197">        jiraIssues.put(&quot;update&quot;, new ArrayList&lt;JiraIssue&gt;());</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">        for (JiraIssue issue : issues) {</span>
             String issueCategory;
-<span class="fc" id="L196">            String issueType = issue.getType();</span>
-<span class="pc bpc" id="L197" title="4 of 8 branches missed.">            if (issueType.equalsIgnoreCase(&quot;new feature&quot;) || issueType.equalsIgnoreCase(&quot;task&quot;) || issueType.equalsIgnoreCase(&quot;internaltask&quot;) || issueType.equalsIgnoreCase(&quot;sub-task&quot;)) {</span>
+<span class="fc" id="L200">            String issueType = issue.getType();</span>
+<span class="pc bpc" id="L201" title="4 of 8 branches missed.">            if (issueType.equalsIgnoreCase(&quot;new feature&quot;) || issueType.equalsIgnoreCase(&quot;task&quot;) || issueType.equalsIgnoreCase(&quot;internaltask&quot;) || issueType.equalsIgnoreCase(&quot;sub-task&quot;)) {</span>
                 // add
-<span class="nc" id="L199">                issueCategory = &quot;add&quot;;</span>
-<span class="pc bpc" id="L200" title="3 of 4 branches missed.">            } else if (issueType.equalsIgnoreCase(&quot;bug&quot;) || issueType.equalsIgnoreCase(&quot;internalbug&quot;)) {</span>
+<span class="nc" id="L203">                issueCategory = &quot;add&quot;;</span>
+<span class="pc bpc" id="L204" title="3 of 4 branches missed.">            } else if (issueType.equalsIgnoreCase(&quot;bug&quot;) || issueType.equalsIgnoreCase(&quot;internalbug&quot;)) {</span>
                 // fix
-<span class="fc" id="L202">                issueCategory = &quot;fix&quot;;</span>
+<span class="fc" id="L206">                issueCategory = &quot;fix&quot;;</span>
             } else {
                 // update
-<span class="nc" id="L205">                issueCategory = &quot;update&quot;;</span>
+<span class="nc" id="L209">                issueCategory = &quot;update&quot;;</span>
             }
-<span class="fc" id="L207">            List&lt;JiraIssue&gt; currentList = jiraIssues.get(issueCategory);</span>
-<span class="fc" id="L208">            currentList.add(issue);</span>
-<span class="fc" id="L209">            jiraIssues.put(issueCategory, currentList);</span>
-<span class="fc" id="L210">        }</span>
-<span class="fc bfc" id="L211" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
-<span class="fc" id="L212">            Collections.sort(list, new JiraIssueComparator());</span>
-<span class="fc" id="L213">        }</span>
-<span class="fc" id="L214">        return jiraIssues;</span>
+<span class="fc" id="L211">            List&lt;JiraIssue&gt; currentList = jiraIssues.get(issueCategory);</span>
+<span class="fc" id="L212">            currentList.add(issue);</span>
+<span class="fc" id="L213">            jiraIssues.put(issueCategory, currentList);</span>
+<span class="fc" id="L214">        }</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">        for (List&lt;JiraIssue&gt; list : jiraIssues.values()) {</span>
+<span class="fc" id="L216">            Collections.sort(list, new JiraIssueComparator());</span>
+<span class="fc" id="L217">        }</span>
+<span class="fc" id="L218">        return jiraIssues;</span>
     }
 
     private void configureIssueDownloader(IssuesDownloader issueDownloader) {
-<span class="fc" id="L218">        issueDownloader.setLog(getLog());</span>
-<span class="fc" id="L219">        issueDownloader.setMaxIssues(maxIssues);</span>
-<span class="fc" id="L220">        issueDownloader.setJiraUser(jiraUser);</span>
-<span class="fc" id="L221">        issueDownloader.setJiraPassword(jiraPassword);</span>
-<span class="fc" id="L222">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
-<span class="fc" id="L223">        issueDownloader.setReleaseVersion(releaseVersion);</span>
-<span class="fc" id="L224">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
-<span class="fc" id="L225">        issueDownloader.setClient(jiraClient);</span>
-<span class="fc" id="L226">    }</span>
+<span class="fc" id="L222">        issueDownloader.setLog(getLog());</span>
+<span class="fc" id="L223">        issueDownloader.setMaxIssues(maxIssues);</span>
+<span class="fc" id="L224">        issueDownloader.setJiraUser(jiraUser);</span>
+<span class="fc" id="L225">        issueDownloader.setJiraPassword(jiraPassword);</span>
+<span class="fc" id="L226">        issueDownloader.setJqlTemplate(jqlTemplate);</span>
+<span class="fc" id="L227">        issueDownloader.setReleaseVersion(releaseVersion);</span>
+<span class="fc" id="L228">        issueDownloader.setJiraProjectKey(jiraProjectKey);</span>
+<span class="fc" id="L229">        issueDownloader.setClient(jiraClient);</span>
+<span class="fc" id="L230">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>

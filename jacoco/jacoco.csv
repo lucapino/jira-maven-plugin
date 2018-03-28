@@ -11,12 +11,12 @@ Maven Jira Plugin,com.github.lucapino.jira.helpers,JiraClient,10,31,3,1,1,9,2,3,
 Maven Jira Plugin,com.github.lucapino.jira.helpers,RemoteVersionComparator,15,0,0,0,3,0,3,0,3,0
 Maven Jira Plugin,com.github.lucapino.jira.helpers,IssuesReportHelper,148,0,22,0,32,0,16,0,5,0
 Maven Jira Plugin,com.github.lucapino.jira.helpers,AbstractIssuesReportGenerator,233,0,26,0,86,0,31,0,15,0
-Maven Jira Plugin,com.github.lucapino.jira,ReleaseNotesMailMojo,450,0,48,0,81,0,28,0,4,0
+Maven Jira Plugin,com.github.lucapino.jira,ReleaseNotesMailMojo,461,0,52,0,83,0,30,0,4,0
 Maven Jira Plugin,com.github.lucapino.jira,AbstractJiraMavenReport,166,0,16,0,38,0,12,0,4,0
 Maven Jira Plugin,com.github.lucapino.jira,CreateNewVersionMojo,131,0,10,0,27,0,8,0,3,0
 Maven Jira Plugin,com.github.lucapino.jira,CreateReportMojo,129,0,6,0,29,0,11,0,8,0
-Maven Jira Plugin,com.github.lucapino.jira,GenerateReleaseNotesMojo,38,320,16,18,9,79,15,11,1,8
-Maven Jira Plugin,com.github.lucapino.jira,ReleaseVersionMojo,157,0,14,0,27,0,11,0,4,0
+Maven Jira Plugin,com.github.lucapino.jira,GenerateReleaseNotesMojo,46,323,19,19,10,80,17,11,1,8
+Maven Jira Plugin,com.github.lucapino.jira,ReleaseVersionMojo,167,0,18,0,29,0,13,0,4,0
 Maven Jira Plugin,com.github.lucapino.jira,VersionHolder,15,0,0,0,6,0,3,0,3,0
-Maven Jira Plugin,com.github.lucapino.jira,AbstractJiraMojo,69,91,14,6,22,29,15,8,5,8
-Maven Jira Plugin,com.github.lucapino.jira,TransitionIssuesMojo,172,0,14,0,41,0,13,0,6,0
+Maven Jira Plugin,com.github.lucapino.jira,AbstractJiraMojo,122,94,19,7,30,30,19,8,6,8
+Maven Jira Plugin,com.github.lucapino.jira,TransitionIssuesMojo,182,0,18,0,43,0,15,0,6,0

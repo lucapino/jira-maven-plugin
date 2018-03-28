@@ -143,46 +143,51 @@ import org.codehaus.plexus.util.IOUtil;
 
     @Override
     public void doExecute() throws Exception {
-        // retrieve the announcement crated at the generate-release-notes goal
-
-<span class="nc" id="L148">        ConsoleLogger logger = new ConsoleLogger(Logger.LEVEL_INFO, &quot;base&quot;);</span>
-
-<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (getLog().isDebugEnabled()) {</span>
-<span class="nc" id="L151">            logger.setThreshold(Logger.LEVEL_DEBUG);</span>
-        }
-
-<span class="nc" id="L154">        mailer.enableLogging(logger);</span>
-
-<span class="nc" id="L156">        mailer.setSmtpHost(smtpHost);</span>
-
-<span class="nc" id="L158">        mailer.setSmtpPort(smtpPort);</span>
-
-<span class="nc" id="L160">        mailer.setSslMode(sslMode);</span>
-
-<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (smtpUsername != null) {</span>
-<span class="nc" id="L163">            mailer.setUsername(smtpUsername);</span>
-        }
-
-<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (smtpPassword != null) {</span>
-<span class="nc" id="L167">            mailer.setPassword(smtpPassword);</span>
-        }
-
-<span class="nc" id="L170">        mailer.initialize();</span>
-
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (getLog().isDebugEnabled()) {</span>
-<span class="nc" id="L173">            getLog().debug(&quot;fromDeveloperId: &quot; + fromDeveloperId);</span>
-        }
-
-<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (targetFile.isFile()) {</span>
-<span class="nc" id="L177">            getLog().info(&quot;Connecting to Host: &quot; + smtpHost + &quot;:&quot; + smtpPort);</span>
-
-<span class="nc" id="L179">            sendMessage();</span>
+        // Run only at the execution root
+<span class="nc bnc" id="L147" title="All 4 branches missed.">        if (runOnlyAtExecutionRoot &amp;&amp; !isThisTheExecutionRoot()) {</span>
+<span class="nc" id="L148">            getLog().info(&quot;Skipping the announcement mail in this project because it's not the Execution Root&quot;);</span>
         } else {
-<span class="nc" id="L181">            throw new MojoExecutionException(&quot;Announcement template &quot; + targetFile + &quot; not found...&quot;);</span>
+            // retrieve the announcement crated at the generate-release-notes goal
+
+<span class="nc" id="L152">            ConsoleLogger logger = new ConsoleLogger(Logger.LEVEL_INFO, &quot;base&quot;);</span>
+
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (getLog().isDebugEnabled()) {</span>
+<span class="nc" id="L155">                logger.setThreshold(Logger.LEVEL_DEBUG);</span>
+            }
+
+<span class="nc" id="L158">            mailer.enableLogging(logger);</span>
+
+<span class="nc" id="L160">            mailer.setSmtpHost(smtpHost);</span>
+
+<span class="nc" id="L162">            mailer.setSmtpPort(smtpPort);</span>
+
+<span class="nc" id="L164">            mailer.setSslMode(sslMode);</span>
+
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (smtpUsername != null) {</span>
+<span class="nc" id="L167">                mailer.setUsername(smtpUsername);</span>
+            }
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if (smtpPassword != null) {</span>
+<span class="nc" id="L171">                mailer.setPassword(smtpPassword);</span>
+            }
+
+<span class="nc" id="L174">            mailer.initialize();</span>
+
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (getLog().isDebugEnabled()) {</span>
+<span class="nc" id="L177">                getLog().debug(&quot;fromDeveloperId: &quot; + fromDeveloperId);</span>
+            }
+
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            if (targetFile.isFile()) {</span>
+<span class="nc" id="L181">                getLog().info(&quot;Connecting to Host: &quot; + smtpHost + &quot;:&quot; + smtpPort);</span>
+
+<span class="nc" id="L183">                sendMessage();</span>
+            } else {
+<span class="nc" id="L185">                throw new MojoExecutionException(&quot;Announcement template &quot; + targetFile + &quot; not found...&quot;);</span>
+            }
+            // create the mail
+            // send the mail
         }
-        // create the mail
-        // send the mail
-<span class="nc" id="L185">    }</span>
+<span class="nc" id="L190">    }</span>
 
     /**
      * Send the email.
@@ -191,60 +196,60 @@ import org.codehaus.plexus.util.IOUtil;
      */
     protected void sendMessage()
             throws MojoExecutionException {
-<span class="nc" id="L194">        String email = &quot;&quot;;</span>
-<span class="nc" id="L195">        final MailSender ms = getActualMailSender();</span>
-<span class="nc" id="L196">        final String fromName = ms.getName();</span>
-<span class="nc" id="L197">        final String fromAddress = ms.getEmail();</span>
-<span class="nc bnc" id="L198" title="All 4 branches missed.">        if (fromAddress == null || fromAddress.equals(&quot;&quot;)) {</span>
-<span class="nc" id="L199">            throw new MojoExecutionException(&quot;Invalid mail sender: name and email is mandatory (&quot; + ms + &quot;).&quot;);</span>
+<span class="nc" id="L199">        String email = &quot;&quot;;</span>
+<span class="nc" id="L200">        final MailSender ms = getActualMailSender();</span>
+<span class="nc" id="L201">        final String fromName = ms.getName();</span>
+<span class="nc" id="L202">        final String fromAddress = ms.getEmail();</span>
+<span class="nc bnc" id="L203" title="All 4 branches missed.">        if (fromAddress == null || fromAddress.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L204">            throw new MojoExecutionException(&quot;Invalid mail sender: name and email is mandatory (&quot; + ms + &quot;).&quot;);</span>
         }
-<span class="nc bnc" id="L201" title="All 6 branches missed.">        if (toAddresses == null &amp;&amp; bccAddresses == null &amp;&amp; ccAddresses == null) {</span>
-<span class="nc" id="L202">            throw new MojoExecutionException(&quot;Invalid mail recipients: a recipients (to, cc or bcc) is mandatory (&quot; + ms + &quot;).&quot;);</span>
+<span class="nc bnc" id="L206" title="All 6 branches missed.">        if (toAddresses == null &amp;&amp; bccAddresses == null &amp;&amp; ccAddresses == null) {</span>
+<span class="nc" id="L207">            throw new MojoExecutionException(&quot;Invalid mail recipients: a recipients (to, cc or bcc) is mandatory (&quot; + ms + &quot;).&quot;);</span>
         }
 
-<span class="nc" id="L205">        getLog().info(&quot;Using this sender for email announcement: &quot; + fromAddress + &quot; &lt; &quot; + fromName + &quot; &gt; &quot;);</span>
+<span class="nc" id="L210">        getLog().info(&quot;Using this sender for email announcement: &quot; + fromAddress + &quot; &lt; &quot; + fromName + &quot; &gt; &quot;);</span>
         try {
-<span class="nc" id="L207">            MailMessage mailMsg = new MailMessage();</span>
-<span class="nc" id="L208">            mailMsg.setSubject(subject);</span>
-<span class="nc" id="L209">            mailMsg.setContent(IOUtil.toString(new FileInputStream(targetFile), &quot;UTF-8&quot;));</span>
-<span class="nc" id="L210">            mailMsg.setContentType(this.mailContentType);</span>
-<span class="nc" id="L211">            mailMsg.setHeader(&quot;Content-Transfer-Encoding&quot;, &quot;quoted-printable&quot;);</span>
-<span class="nc" id="L212">            mailMsg.setFrom(fromAddress, fromName);</span>
+<span class="nc" id="L212">            MailMessage mailMsg = new MailMessage();</span>
+<span class="nc" id="L213">            mailMsg.setSubject(subject);</span>
+<span class="nc" id="L214">            mailMsg.setContent(IOUtil.toString(new FileInputStream(targetFile), &quot;UTF-8&quot;));</span>
+<span class="nc" id="L215">            mailMsg.setContentType(this.mailContentType);</span>
+<span class="nc" id="L216">            mailMsg.setHeader(&quot;Content-Transfer-Encoding&quot;, &quot;quoted-printable&quot;);</span>
+<span class="nc" id="L217">            mailMsg.setFrom(fromAddress, fromName);</span>
 
-<span class="nc bnc" id="L214" title="All 2 branches missed.">            if (toAddresses != null) {</span>
-<span class="nc" id="L215">                final Iterator it = toAddresses.iterator();</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">                while (it.hasNext()) {</span>
-<span class="nc" id="L217">                    email = it.next().toString();</span>
-<span class="nc" id="L218">                    getLog().info(&quot;Sending mail to &quot; + email + &quot;...&quot;);</span>
-<span class="nc" id="L219">                    mailMsg.addTo(email, &quot;&quot;);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">            if (toAddresses != null) {</span>
+<span class="nc" id="L220">                final Iterator it = toAddresses.iterator();</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                while (it.hasNext()) {</span>
+<span class="nc" id="L222">                    email = it.next().toString();</span>
+<span class="nc" id="L223">                    getLog().info(&quot;Sending mail to &quot; + email + &quot;...&quot;);</span>
+<span class="nc" id="L224">                    mailMsg.addTo(email, &quot;&quot;);</span>
                 }
             }
-<span class="nc bnc" id="L222" title="All 2 branches missed.">            if (ccAddresses != null) {</span>
-<span class="nc" id="L223">                final Iterator it2 = ccAddresses.iterator();</span>
-<span class="nc bnc" id="L224" title="All 2 branches missed.">                while (it2.hasNext()) {</span>
-<span class="nc" id="L225">                    email = it2.next().toString();</span>
-<span class="nc" id="L226">                    getLog().info(&quot;Sending cc mail to &quot; + email + &quot;...&quot;);</span>
-<span class="nc" id="L227">                    mailMsg.addCc(email, &quot;&quot;);</span>
-                }
-            }
-
-<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (bccAddresses != null) {</span>
-<span class="nc" id="L232">                final Iterator it3 = bccAddresses.iterator();</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">                while (it3.hasNext()) {</span>
-<span class="nc" id="L234">                    email = it3.next().toString();</span>
-<span class="nc" id="L235">                    getLog().info(&quot;Sending bcc mail to &quot; + email + &quot;...&quot;);</span>
-<span class="nc" id="L236">                    mailMsg.addBcc(email, &quot;&quot;);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (ccAddresses != null) {</span>
+<span class="nc" id="L228">                final Iterator it2 = ccAddresses.iterator();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                while (it2.hasNext()) {</span>
+<span class="nc" id="L230">                    email = it2.next().toString();</span>
+<span class="nc" id="L231">                    getLog().info(&quot;Sending cc mail to &quot; + email + &quot;...&quot;);</span>
+<span class="nc" id="L232">                    mailMsg.addCc(email, &quot;&quot;);</span>
                 }
             }
 
-<span class="nc" id="L240">            mailer.send(mailMsg);</span>
-<span class="nc" id="L241">            getLog().info(&quot;Sent...&quot;);</span>
-<span class="nc" id="L242">        } catch (IOException ioe) {</span>
-<span class="nc" id="L243">            throw new MojoExecutionException(&quot;Failed to send email.&quot;, ioe);</span>
-<span class="nc" id="L244">        } catch (MailSenderException e) {</span>
-<span class="nc" id="L245">            throw new MojoExecutionException(&quot;Failed to send email &lt; &quot; + email + &quot; &gt;&quot;, e);</span>
-<span class="nc" id="L246">        }</span>
-<span class="nc" id="L247">    }</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            if (bccAddresses != null) {</span>
+<span class="nc" id="L237">                final Iterator it3 = bccAddresses.iterator();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                while (it3.hasNext()) {</span>
+<span class="nc" id="L239">                    email = it3.next().toString();</span>
+<span class="nc" id="L240">                    getLog().info(&quot;Sending bcc mail to &quot; + email + &quot;...&quot;);</span>
+<span class="nc" id="L241">                    mailMsg.addBcc(email, &quot;&quot;);</span>
+                }
+            }
+
+<span class="nc" id="L245">            mailer.send(mailMsg);</span>
+<span class="nc" id="L246">            getLog().info(&quot;Sent...&quot;);</span>
+<span class="nc" id="L247">        } catch (IOException ioe) {</span>
+<span class="nc" id="L248">            throw new MojoExecutionException(&quot;Failed to send email.&quot;, ioe);</span>
+<span class="nc" id="L249">        } catch (MailSenderException e) {</span>
+<span class="nc" id="L250">            throw new MojoExecutionException(&quot;Failed to send email &lt; &quot; + email + &quot; &gt;&quot;, e);</span>
+<span class="nc" id="L251">        }</span>
+<span class="nc" id="L252">    }</span>
 
     /**
      * Returns the identify of the mail sender according to the plugin's
@@ -260,37 +265,38 @@ import org.codehaus.plexus.util.IOUtil;
      * &lt;/ul&gt;
      *
      * @return the mail sender to use
+     *
      * @throws MojoExecutionException if the mail sender could not be retrieved
      */
     protected MailSender getActualMailSender()
             throws MojoExecutionException {
-<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (senderString != null) {</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (senderString != null) {</span>
             try {
-<span class="nc" id="L269">                InternetAddress ia = new InternetAddress(senderString, true);</span>
-<span class="nc" id="L270">                return new MailSender(ia.getPersonal(), ia.getAddress());</span>
-<span class="nc" id="L271">            } catch (AddressException e) {</span>
-<span class="nc" id="L272">                throw new MojoExecutionException(&quot;Invalid value for change.sender: &quot;, e);</span>
+<span class="nc" id="L275">                InternetAddress ia = new InternetAddress(senderString, true);</span>
+<span class="nc" id="L276">                return new MailSender(ia.getPersonal(), ia.getAddress());</span>
+<span class="nc" id="L277">            } catch (AddressException e) {</span>
+<span class="nc" id="L278">                throw new MojoExecutionException(&quot;Invalid value for change.sender: &quot;, e);</span>
             }
         }
-<span class="nc bnc" id="L275" title="All 4 branches missed.">        if (mailSender != null &amp;&amp; mailSender.getEmail() != null) {</span>
-<span class="nc" id="L276">            return mailSender;</span>
-<span class="nc bnc" id="L277" title="All 4 branches missed.">        } else if (from == null || from.isEmpty()) {</span>
-<span class="nc" id="L278">            throw new MojoExecutionException(</span>
+<span class="nc bnc" id="L281" title="All 4 branches missed.">        if (mailSender != null &amp;&amp; mailSender.getEmail() != null) {</span>
+<span class="nc" id="L282">            return mailSender;</span>
+<span class="nc bnc" id="L283" title="All 4 branches missed.">        } else if (from == null || from.isEmpty()) {</span>
+<span class="nc" id="L284">            throw new MojoExecutionException(</span>
                     &quot;The &lt;developers&gt; section in your pom should not be empty. Add a &lt;developer&gt; entry or set the &quot;
                     + &quot;mailSender parameter.&quot;);
-<span class="nc bnc" id="L281" title="All 2 branches missed.">        } else if (fromDeveloperId == null) {</span>
-<span class="nc" id="L282">            final Developer dev = (Developer) from.get(0);</span>
-<span class="nc" id="L283">            return new MailSender(dev.getName(), dev.getEmail());</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">        } else if (fromDeveloperId == null) {</span>
+<span class="nc" id="L288">            final Developer dev = (Developer) from.get(0);</span>
+<span class="nc" id="L289">            return new MailSender(dev.getName(), dev.getEmail());</span>
         } else {
-<span class="nc" id="L285">            final Iterator it = from.iterator();</span>
-<span class="nc bnc" id="L286" title="All 2 branches missed.">            while (it.hasNext()) {</span>
-<span class="nc" id="L287">                Developer developer = (Developer) it.next();</span>
+<span class="nc" id="L291">            final Iterator it = from.iterator();</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">            while (it.hasNext()) {</span>
+<span class="nc" id="L293">                Developer developer = (Developer) it.next();</span>
 
-<span class="nc bnc" id="L289" title="All 2 branches missed.">                if (fromDeveloperId.equals(developer.getId())) {</span>
-<span class="nc" id="L290">                    return new MailSender(developer.getName(), developer.getEmail());</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                if (fromDeveloperId.equals(developer.getId())) {</span>
+<span class="nc" id="L296">                    return new MailSender(developer.getName(), developer.getEmail());</span>
                 }
-<span class="nc" id="L292">            }</span>
-<span class="nc" id="L293">            throw new MojoExecutionException(</span>
+<span class="nc" id="L298">            }</span>
+<span class="nc" id="L299">            throw new MojoExecutionException(</span>
                     &quot;Missing developer with id '&quot; + fromDeveloperId + &quot;' in the &lt;developers&gt; section in your pom.&quot;);
         }
     }
