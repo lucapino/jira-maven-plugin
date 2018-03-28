@@ -143,45 +143,50 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
 
     @Override
     public void doExecute() throws Exception {
-        // retrieve the announcement crated at the generate-release-notes goal
-
-        ConsoleLogger logger = new ConsoleLogger(Logger.LEVEL_INFO, "base");
-
-        if (getLog().isDebugEnabled()) {
-            logger.setThreshold(Logger.LEVEL_DEBUG);
-        }
-
-        mailer.enableLogging(logger);
-
-        mailer.setSmtpHost(smtpHost);
-
-        mailer.setSmtpPort(smtpPort);
-
-        mailer.setSslMode(sslMode);
-
-        if (smtpUsername != null) {
-            mailer.setUsername(smtpUsername);
-        }
-
-        if (smtpPassword != null) {
-            mailer.setPassword(smtpPassword);
-        }
-
-        mailer.initialize();
-
-        if (getLog().isDebugEnabled()) {
-            getLog().debug("fromDeveloperId: " + fromDeveloperId);
-        }
-
-        if (targetFile.isFile()) {
-            getLog().info("Connecting to Host: " + smtpHost + ":" + smtpPort);
-
-            sendMessage();
+        // Run only at the execution root
+        if (runOnlyAtExecutionRoot && !isThisTheExecutionRoot()) {
+            getLog().info("Skipping the announcement mail in this project because it's not the Execution Root");
         } else {
-            throw new MojoExecutionException("Announcement template " + targetFile + " not found...");
+            // retrieve the announcement crated at the generate-release-notes goal
+
+            ConsoleLogger logger = new ConsoleLogger(Logger.LEVEL_INFO, "base");
+
+            if (getLog().isDebugEnabled()) {
+                logger.setThreshold(Logger.LEVEL_DEBUG);
+            }
+
+            mailer.enableLogging(logger);
+
+            mailer.setSmtpHost(smtpHost);
+
+            mailer.setSmtpPort(smtpPort);
+
+            mailer.setSslMode(sslMode);
+
+            if (smtpUsername != null) {
+                mailer.setUsername(smtpUsername);
+            }
+
+            if (smtpPassword != null) {
+                mailer.setPassword(smtpPassword);
+            }
+
+            mailer.initialize();
+
+            if (getLog().isDebugEnabled()) {
+                getLog().debug("fromDeveloperId: " + fromDeveloperId);
+            }
+
+            if (targetFile.isFile()) {
+                getLog().info("Connecting to Host: " + smtpHost + ":" + smtpPort);
+
+                sendMessage();
+            } else {
+                throw new MojoExecutionException("Announcement template " + targetFile + " not found...");
+            }
+            // create the mail
+            // send the mail
         }
-        // create the mail
-        // send the mail
     }
 
     /**
@@ -260,6 +265,7 @@ public class ReleaseNotesMailMojo extends AbstractJiraMojo {
      * </ul>
      *
      * @return the mail sender to use
+     *
      * @throws MojoExecutionException if the mail sender could not be retrieved
      */
     protected MailSender getActualMailSender()

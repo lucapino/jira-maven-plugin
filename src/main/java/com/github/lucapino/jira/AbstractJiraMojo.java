@@ -19,6 +19,7 @@ package com.github.lucapino.jira;
 
 import com.github.lucapino.jira.helpers.JiraClient;
 import com.github.lucapino.jira.helpers.TemplateEvaluator;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -36,6 +37,17 @@ import org.apache.maven.settings.Settings;
  */
 public abstract class AbstractJiraMojo extends AbstractMojo {
 
+    /**
+     * The current project base directory.
+     */
+    @Parameter(property = "basedir", required = true)
+    protected String basedir;
+    /**
+     * The Maven Session.
+     */
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    protected MavenSession mavenSession;
+
     @Parameter(defaultValue = "${settings}", readonly = true, required = true)
     private Settings settings;
     /**
@@ -47,7 +59,7 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
      * JIRA Installation URL. If not informed, it will use the
      * project.issueManagement.jiraURL info.
      */
-    @Parameter(name = "jira.url", defaultValue = "${project.issueManagement.url}", required = true)
+    @Parameter(defaultValue = "${project.issueManagement.url}", required = true)
     protected String jiraURL;
     /**
      * JIRA Authentication User.
@@ -75,6 +87,13 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
      */
     @Parameter
     protected boolean skip;
+    /**
+     * This will cause the execution to be run only at the top of a given module
+     * tree. That is, run in the project contained in the same folder where the
+     * mvn execution was launched.
+     */
+    @Parameter(defaultValue = "false")
+    protected boolean runOnlyAtExecutionRoot;
 
     private TemplateEvaluator evaluator;
     protected JiraClient jiraClient;
@@ -95,17 +114,22 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
         Log log = getLog();
-        if (isSkip()) {
-            log.info("Skipping Plugin execution.");
-            return;
-        }
-        try {
-            initJiraClient();
-            doExecute();
-            jiraClient.getRestClient().close();
-        } catch (Exception e) {
-            log.error("Error when executing mojo", e);
-            // XXX: Por enquanto nao faz nada.
+        // Run only at the execution root
+        if (runOnlyAtExecutionRoot && !isThisTheExecutionRoot()) {
+            getLog().info("Skipping the announcement mail in this project because it's not the Execution Root");
+        } else {
+            if (isSkip()) {
+                log.info("Skipping Plugin execution.");
+                return;
+            }
+            try {
+                initJiraClient();
+                doExecute();
+                jiraClient.getRestClient().close();
+            } catch (Exception e) {
+                log.error("Error when executing mojo", e);
+                // XXX: Por enquanto nao faz nada.
+            }
         }
     }
 
@@ -169,5 +193,24 @@ public abstract class AbstractJiraMojo extends AbstractMojo {
                 }
             }
         }
+    }
+
+    /**
+     * Returns <code>true</code> if the current project is located at the
+     * Execution Root Directory (where mvn was
+     * launched).
+     *
+     * @return <code>true</code> if the current project is at the Execution Root
+     */
+    protected boolean isThisTheExecutionRoot() {
+        getLog().debug("Root Folder:" + mavenSession.getExecutionRootDirectory());
+        getLog().debug("Current Folder:" + basedir);
+        boolean result = mavenSession.getExecutionRootDirectory().equalsIgnoreCase(basedir);
+        if (result) {
+            getLog().debug("This is the execution root.");
+        } else {
+            getLog().debug("This is NOT the execution root.");
+        }
+        return result;
     }
 }

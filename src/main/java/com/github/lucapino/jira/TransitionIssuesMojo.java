@@ -61,13 +61,18 @@ public class TransitionIssuesMojo extends AbstractJiraMojo {
     @Override
     public void doExecute() throws Exception {
         Log log = getLog();
-        if (transition == null) {
-            log.info("Transition not specified. Nothing to do");
+        // Run only at the execution root
+        if (runOnlyAtExecutionRoot && !isThisTheExecutionRoot()) {
+            log.info("Skipping the announcement mail in this project because it's not the Execution Root");
+        } else {
+            if (transition == null) {
+                log.info("Transition not specified. Nothing to do");
+            }
+            IssuesDownloader issuesDownloader = new IssuesDownloader();
+            configureIssueDownloader(issuesDownloader);
+            List<JiraIssue> issues = issuesDownloader.getIssueList();
+            transitionIssues(issues, transition);
         }
-        IssuesDownloader issuesDownloader = new IssuesDownloader();
-        configureIssueDownloader(issuesDownloader);
-        List<JiraIssue> issues = issuesDownloader.getIssueList();
-        transitionIssues(issues, transition);
     }
 
     public void setReleaseVersion(String releaseVersion) {

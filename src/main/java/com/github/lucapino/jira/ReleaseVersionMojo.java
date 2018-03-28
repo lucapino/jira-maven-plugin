@@ -60,10 +60,15 @@ public class ReleaseVersionMojo extends AbstractJiraMojo {
     @Override
     public void doExecute() throws Exception {
         Log log = getLog();
-        VersionHolder thisReleaseVersion = calculateReleaseVersion();
-        if (thisReleaseVersion != null) {
-            log.info("Releasing Version " + thisReleaseVersion.getVersion().getName());
-            markVersionAsReleased(thisReleaseVersion);
+        // Run only at the execution root
+        if (runOnlyAtExecutionRoot && !isThisTheExecutionRoot()) {
+            log.info("Skipping the announcement mail in this project because it's not the Execution Root");
+        } else {
+            VersionHolder thisReleaseVersion = calculateReleaseVersion();
+            if (thisReleaseVersion != null) {
+                log.info("Releasing Version " + thisReleaseVersion.getVersion().getName());
+                markVersionAsReleased(thisReleaseVersion);
+            }
         }
     }
 

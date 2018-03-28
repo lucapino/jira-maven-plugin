@@ -34,7 +34,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -44,7 +43,7 @@ import org.apache.maven.plugins.annotations.Parameter;
  * @author George Gastaldi
  */
 @Mojo(name = "generate-release-notes")
-@Execute(goal = "generate-release-notes", phase = LifecyclePhase.DEPLOY)
+@Execute(goal = "generate-release-notes")
 public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
 
     /**
@@ -93,10 +92,15 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
 
     @Override
     public void doExecute() throws Exception {
-        IssuesDownloader issuesDownloader = new IssuesDownloader();
-        configureIssueDownloader(issuesDownloader);
-        List<JiraIssue> issues = issuesDownloader.getIssueList();
-        output(issues);
+        // Run only at the execution root
+        if (runOnlyAtExecutionRoot && !isThisTheExecutionRoot()) {
+            getLog().info("Skipping the announcement mail in this project because it's not the Execution Root");
+        } else {
+            IssuesDownloader issuesDownloader = new IssuesDownloader();
+            configureIssueDownloader(issuesDownloader);
+            List<JiraIssue> issues = issuesDownloader.getIssueList();
+            output(issues);
+        }
     }
 
     /**
