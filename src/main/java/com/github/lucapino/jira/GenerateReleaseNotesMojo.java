@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -156,8 +157,9 @@ public class GenerateReleaseNotesMojo extends AbstractJiraMojo {
             // remove the temp file
             templateFile.delete();
         }
-
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(targetFile, true), "UTF-8");
+        
+        // this creates the parent folder and the file if they doesn't exist
+        OutputStreamWriter writer = new OutputStreamWriter(FileUtils.openOutputStream(targetFile), "UTF-8");
         PrintWriter ps = new PrintWriter(writer);
 
         try {
