@@ -15,7 +15,7 @@ Maven Jira Plugin,com.github.lucapino.jira,ReleaseNotesMailMojo,461,0,52,0,83,0,
 Maven Jira Plugin,com.github.lucapino.jira,AbstractJiraMavenReport,166,0,16,0,38,0,12,0,4,0
 Maven Jira Plugin,com.github.lucapino.jira,CreateNewVersionMojo,131,0,10,0,27,0,8,0,3,0
 Maven Jira Plugin,com.github.lucapino.jira,CreateReportMojo,129,0,6,0,29,0,11,0,8,0
-Maven Jira Plugin,com.github.lucapino.jira,GenerateReleaseNotesMojo,46,323,19,19,10,80,17,11,1,8
+Maven Jira Plugin,com.github.lucapino.jira,GenerateReleaseNotesMojo,46,320,19,19,10,80,17,11,1,8
 Maven Jira Plugin,com.github.lucapino.jira,ReleaseVersionMojo,167,0,18,0,29,0,13,0,4,0
 Maven Jira Plugin,com.github.lucapino.jira,VersionHolder,15,0,0,0,6,0,3,0,3,0
 Maven Jira Plugin,com.github.lucapino.jira,AbstractJiraMojo,122,94,19,7,30,30,19,8,6,8
