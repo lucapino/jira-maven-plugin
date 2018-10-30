@@ -22,9 +22,9 @@ Available goals:
 Example plugin definition:
 ==========================
     <plugin>
-        <groupId>it.peng.maven.plugin</groupId>
+        <groupId>com.github.lucapino</groupId>
         <artifactId>jira-maven-plugin</artifactId>
-        <version>2.0.0</version>
+        <version>2.0.2</version>
         <configuration>
             <serverId>jira-server</serverId>
             <url>https://jira.example.org/jira/ </url>
