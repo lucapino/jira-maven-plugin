@@ -95,8 +95,8 @@ Example _transition-issues_ goal configuration:
 [Coverage Status]:https://codecov.io/gh/lucapino/jira-maven-plugin
 [Coverage Status img]:https://codecov.io/gh/lucapino/jira-maven-plugin/branch/master/graph/badge.svg
 
-[Dependency Status]:https://www.versioneye.com/user/projects/59e0e6212de28c21ceb9707cc
-[Dependency Status img]:https://www.versioneye.com/user/projects/59e0e6212de28c21ceb9707c/badge.svg?style=flat
+[Dependency Status]:https://snyk.io/test/github/lucapino/jira-maven-plugin
+[Dependency Status img]:https://snyk.io/test/github/lucapino/jira-maven-plugin/badge.svg?style=flat
 
 [license]:LICENSE
 [license img]:https://img.shields.io/badge/license-Apache%202-blue.svg
