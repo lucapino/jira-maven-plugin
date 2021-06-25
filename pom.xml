@@ -461,7 +461,7 @@ limitations under the License.
         <dependency>
             <groupId>org.apache.maven.doxia</groupId>
             <artifactId>doxia-core</artifactId>
-            <version>1.7</version>
+            <version>1.10</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.httpcomponents</groupId>
